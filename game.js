@@ -81,9 +81,9 @@ function roadTex(theme) {
     for (let i = 0; i < 2600; i++) { const v = Math.random() * 40 - 20; const c = v > 0 ? 255 : 0; g.fillStyle = `rgba(${c},${c},${c},${Math.abs(v) / 200})`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
     const cw = w * 0.06;
     for (let y = 0; y < h; y += 64) { g.fillStyle = (y / 64) % 2 ? '#f2f2f2' : '#d8282a'; g.fillRect(0, y, cw, 64); g.fillRect(w - cw, y, cw, 64); }
-    g.fillStyle = '#f4f4f4'; g.fillRect(cw + 4, 0, 5, h); g.fillRect(w - cw - 9, 0, 5, h);
-    g.fillStyle = theme === 'city' ? '#ffd23a' : '#f4f4f4'; g.fillRect(w / 2 - 4, 0, 8, h * .55);
-    g.fillStyle = 'rgba(244,244,244,.85)'; g.fillRect(w * .28 - 2, 0, 4, h * .4); g.fillRect(w * .72 - 2, h * .5, 4, h * .4);
+    g.fillStyle = '#f4f4f4'; g.fillStyle = '#ffffff'; g.fillRect(cw + 2, 0, 9, h); g.fillRect(w - cw - 11, 0, 9, h);
+    g.fillStyle = theme === 'city' ? '#ffd23a' : '#f4f4f4'; g.fillRect(w / 2 - 6, 0, 12, h * .55);
+    g.fillStyle = '#ffffff'; g.fillRect(w * .28 - 3, 0, 6, h * .4); g.fillRect(w * .72 - 3, h * .5, 6, h * .4);
     if (theme === 'snow') { for (let i = 0; i < 500; i++) { g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(Math.random() * w, Math.random() * h, 3, 3); } }
   }, true);
 }
@@ -214,7 +214,7 @@ const THEMECOL = {
 let RW = 8.4;
 function buildWorld(def) { RW = def.rw || 8.4;
   scene = new THREE.Scene(); track = genTrack(def); const tr = track, N = tr.N, th = def.theme;
-  scene.fog = new THREE.Fog(def.fog[0], def.fog[1], Math.min(def.fog[2], Q.far)); camera.far = 3500; camera.updateProjectionMatrix();
+  scene.fog = new THREE.Fog(def.fog[0], def.fog[1] * 1.8, Math.min(def.fog[2] * 1.3, Q.far * 1.3)); camera.far = 3500; camera.updateProjectionMatrix();
   const skyM = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false, uniforms: { top: { value: new THREE.Color(def.sky[0]) }, hor: { value: new THREE.Color(def.sky[1]) }, bot: { value: new THREE.Color(def.sky[2]) }, sdir: { value: new THREE.Vector3(...def.sun).normalize() }, scol: { value: new THREE.Color(def.sunCol) }, night: { value: def.night ? 1 : 0 } },
     vertexShader: 'varying vec3 vp;void main(){vp=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);gl_Position.z=gl_Position.w;}',
     fragmentShader: 'uniform vec3 top,hor,bot,sdir,scol;uniform float night;varying vec3 vp;float h(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,45.164)))*43758.5453);}void main(){float y=vp.y;vec3 c=y>0.?mix(hor,top,pow(clamp(y,0.,1.),.6)):mix(hor,bot,clamp(-y*4.,0.,1.));float s=max(dot(vp,sdir),0.);c+=scol*(pow(s,600.)*(night>.5?.8:3.)+pow(s,12.)*.25);if(night>.5&&y>.05){vec3 q=floor(vp*300.);float st=step(.997,h(q));c+=vec3(st)*smoothstep(.05,.3,y);}gl_FragColor=vec4(c,1.);}' });
@@ -241,7 +241,7 @@ function buildWorld(def) { RW = def.rw || 8.4;
 }
 function makeParticles(n, color, size) {
   const g = new THREE.BufferGeometry(); const p = new Float32Array(n * 3).fill(-9999); g.setAttribute('position', new THREE.BufferAttribute(p, 3));
-  const pts = new THREE.Points(g, new THREE.PointsMaterial({ color, size, map: dotTex, transparent: true, opacity: .55, depthWrite: false })); pts.frustumCulled = false; scene.add(pts);
+  const pts = new THREE.Points(g, new THREE.PointsMaterial({ color, size, map: dotTex, transparent: true, opacity: .22, depthWrite: false })); pts.frustumCulled = false; scene.add(pts);
   return { pts, p, v: new Float32Array(n * 3), life: new Float32Array(n), n, next: 0 };
 }
 function emit(ps, x, y, z, vx, vy, vz) { const i = ps.next; ps.next = (i + 1) % ps.n; ps.p[i * 3] = x; ps.p[i * 3 + 1] = y; ps.p[i * 3 + 2] = z; ps.v[i * 3] = vx; ps.v[i * 3 + 1] = vy; ps.v[i * 3 + 2] = vz; ps.life[i] = .9; }
@@ -527,15 +527,15 @@ function tickRace(dt) {
   if (racing) updateTraffic(dt); else traffic.forEach(c => placeObj(c.m, c.s, c.x, 0));
   stepParticles(dust, dt);
   const p = player(); frameAt(p.s, F);
-  const v = p.v, back = 5.8 + v * .03, hgt = 2.6 + v * .006;
+  const v = p.v, back = 7.6 + v * .035, hgt = 3.7 + v * .01; // higher + farther back: see the road ahead
   const want = F.p.clone().addScaledVector(F.t, -back).addScaledVector(F.r, p.x * .85); want.y = Math.max(want.y, F.p.y) + hgt;
-  frameAt(p.s + 14, F2); const look = F2.p.clone().addScaledVector(F2.r, p.x * .8); look.y += 1.4;
+  frameAt(p.s + 26 + v * .12, F2); const look = F2.p.clone().addScaledVector(F2.r, p.x * .6); look.y += .9;
   if (!camInit) { camPos.copy(want); camLook.copy(look); camInit = true; }
-  camPos.lerp(want, Math.min(1, dt * 7)); camLook.lerp(look, Math.min(1, dt * 9));
+  camPos.lerp(want, Math.min(1, dt * 6)); camLook.lerp(look, Math.min(1, dt * 5));
   camera.position.copy(camPos); if (shake > 0) { shake -= dt; camera.position.x += (Math.random() - .5) * shake * .6; camera.position.y += (Math.random() - .5) * shake * .6; }
   camera.position.y += Math.sin(raceTime * 40) * .012 * clamp(v / 60, 0, 1);
   camera.lookAt(camLook); camera.rotateZ(p.leanA * .22);
-  const fov = 62 + clamp(v / 70, 0, 1) * 16; if (Math.abs(camera.fov - fov) > .1) { camera.fov = lerp(camera.fov, fov, Math.min(1, dt * 3)); camera.updateProjectionMatrix(); }
+  const fov = (camera.aspect > 1.3 ? 66 : 70) + clamp(v / 70, 0, 1) * 10; if (Math.abs(camera.fov - fov) > .1) { camera.fov = lerp(camera.fov, fov, Math.min(1, dt * 3)); camera.updateProjectionMatrix(); }
   scene.userData.sky.position.copy(camera.position);
   sun.target.position.copy(p.b.root.position); sun.position.copy(p.b.root.position).addScaledVector(new THREE.Vector3(...track.def.sun).normalize(), 120);
   const hl = scene.userData.head; if (hl) { hl.position.copy(p.b.root.position).addScaledVector(F.t, -.5); hl.position.y += 1.3; hl.target.position.copy(p.b.root.position).addScaledVector(F.t, 30); }
