@@ -28,6 +28,7 @@
   <div id="banner"></div>
   <div id="count"></div>
   <div id="pops"></div>
+  <div id="tiltHint">↩︎ Tilt a little less!<small>Turn back sideways to keep racing</small></div>
   <!-- touch controls -->
   <div id="ctl">
     <button class="cb" id="cLeft">◀</button>
@@ -87,7 +88,9 @@
     <label>Tilt sensitivity <input type="range" id="oSens" min="1" max="10" step="1"><span id="oSensV"></span></label>
     <label>Invert tilt <input type="checkbox" id="oInv"></label>
     <div class="row"><button class="mid" id="oCal">🎯 Recenter tilt (hold device level)</button><span id="tiltRead">tilt: –</span></div>
+    <label>Difficulty <select id="oDiff"><option value="easy">Easy (steering help)</option><option value="normal">Normal</option><option value="pro">Pro</option></select></label>
     <label>Auto-throttle (no GAS button needed) <input type="checkbox" id="oAuto"></label>
+    <p class="note">🔒 Tip: hard tilts can flip an iPhone to portrait. Turn on <b>Portrait Orientation Lock</b> in Control Center (swipe down from the top-right) — Tilt Rider notices and turns itself sideways, so the screen never flips mid-race.</p>
     <label>Graphics <select id="oQual"><option value="auto">Auto</option><option value="low">Low (fastest)</option><option value="med">Medium</option><option value="high">High (shadows)</option></select></label>
     <label>Music <input type="checkbox" id="oMusic"></label>
     <label>Sound <input type="checkbox" id="oSound"></label>
@@ -119,7 +122,7 @@
   </div>
 </div>
 
-<div id="rotate"><div>📱↻</div><p>Turn your device sideways<br>for the best ride</p><button class="mid" id="rotGo">Play anyway</button></div>
+<div id="rotate"><div>📱↻</div><p>Turn your device sideways<br>for the best ride</p><button class="mid" id="rotLock">🔒 Portrait Lock is on — turn the game sideways</button><button class="mid" id="rotGo">Play anyway</button><p class="note">Tip: Portrait Orientation Lock (Control Center) stops the screen flipping when you tilt hard.</p></div>
 
 <script type="module" src="game.js"></script>
 </body></html>
