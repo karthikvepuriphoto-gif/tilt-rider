@@ -69,7 +69,8 @@ button{font:inherit;color:inherit;border:0;cursor:pointer}
 #hudRight{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));display:flex;gap:8px}
 .ico{width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.45);font-size:20px}
 #mini{position:fixed;top:max(8px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));width:clamp(80px,13vw,140px);height:auto;opacity:.9}
-#speedo{position:fixed;bottom:max(6px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:clamp(140px,20vw,220px);height:auto;pointer-events:none}
+/* speedo top-right, left of mute/pause icons: never over the rider or controls */
+#speedo{position:fixed;top:max(4px,env(safe-area-inset-top));right:calc(max(10px,env(safe-area-inset-right)) + 104px);width:clamp(100px,13vw,170px);height:auto;pointer-events:none}
 #banner{position:fixed;top:22%;left:0;right:0;text-align:center;font-weight:900;font-size:clamp(20px,4vw,40px);text-shadow:0 3px 8px rgba(0,0,0,.7);pointer-events:none;opacity:0;transition:opacity .25s}
 #banner.on{opacity:1}
 #count{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:min(30vw,30vh);font-weight:900;font-style:italic;color:#ffd25e;text-shadow:0 8px 0 #b2321b;pointer-events:none}
