@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d1020">
+<title>Tilt Rider – Motorcycle Racing</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%8F%8D%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<canvas id="gl"></canvas>
+<canvas id="fx"></canvas>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div id="hudTop">
+    <div class="pill" id="hPos"><small>POS</small><b>1/8</b></div>
+    <div class="pill" id="hLap"><small>LAP</small><b>1/2</b></div>
+    <div class="pill" id="hTime"><small>TIME</small><b>0:00.0</b></div>
+  </div>
+  <div id="hudRight">
+    <button id="bMute" class="ico" aria-label="Mute">🔊</button>
+    <button id="bPause" class="ico" aria-label="Pause">⏸</button>
+  </div>
+  <canvas id="mini" width="180" height="180"></canvas>
+  <canvas id="speedo" width="220" height="140"></canvas>
+  <div id="banner"></div>
+  <div id="count"></div>
+  <div id="pops"></div>
+  <!-- touch controls -->
+  <div id="ctl">
+    <button class="cb" id="cLeft">◀</button>
+    <button class="cb" id="cRight">▶</button>
+    <button class="cb kick" id="cKickL">🦵<span>KICK</span></button>
+    <button class="cb kick" id="cKickR">🦵<span>KICK</span></button>
+    <button class="cb" id="cBrake">BRAKE</button>
+    <button class="cb" id="cGas">GAS</button>
+  </div>
+</div>
+
+<!-- Tap to start -->
+<div id="sStart" class="screen show">
+  <div class="logo">TILT<span>RIDER</span></div>
+  <p class="tag">Tilt to steer. Kick to win. Ride the world.</p>
+  <button class="big" id="bStart">Tap to start</button>
+  <p class="hint">On iPad or phone this also turns on tilt steering.</p>
+</div>
+
+<!-- Title -->
+<div id="sTitle" class="screen">
+  <div class="logo">TILT<span>RIDER</span></div>
+  <div class="cash">💰 <b class="cashv">0</b></div>
+  <div class="menu">
+    <button class="big" id="bRace">🏁 Race</button>
+    <button class="big alt" id="bGarage">🏍 Garage</button>
+    <button class="big alt" id="bSettings">⚙️ Settings</button>
+  </div>
+  <p class="hint">Keyboard: ←/→ steer · ↑ gas · ↓ brake · Z / X kick · P pause</p>
+</div>
+
+<!-- Tracks -->
+<div id="sTracks" class="screen">
+  <div class="hdr"><button class="back" data-go="sTitle">‹ Back</button><h2>Pick a track</h2><div class="cash">💰 <b class="cashv">0</b></div></div>
+  <div id="trackList" class="cards"></div>
+</div>
+
+<!-- Garage -->
+<div id="sGarage" class="screen garage">
+  <div class="hdr"><button class="back" data-go="sTitle">‹ Back</button><h2>Garage</h2><div class="cash">💰 <b class="cashv">0</b></div></div>
+  <div class="gbody">
+    <div class="gview"><div id="gStats"></div></div>
+    <div class="gpanel">
+      <div class="tabs">
+        <button data-tab="bike" class="on">Bike</button><button data-tab="paint">Paint</button><button data-tab="decal">Decal</button><button data-tab="rider">Rider</button><button data-tab="up">Upgrades</button>
+      </div>
+      <div id="gTab"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings -->
+<div id="sSettings" class="screen">
+  <div class="hdr"><button class="back" data-go="sTitle">‹ Back</button><h2>Settings</h2><div></div></div>
+  <div class="set">
+    <label>Steering <select id="oSteer"><option value="tilt">Tilt the device</option><option value="touch">Touch buttons</option></select></label>
+    <label>Tilt sensitivity <input type="range" id="oSens" min="1" max="10" step="1"><span id="oSensV"></span></label>
+    <label>Invert tilt <input type="checkbox" id="oInv"></label>
+    <div class="row"><button class="mid" id="oCal">🎯 Recenter tilt (hold device level)</button><span id="tiltRead">tilt: –</span></div>
+    <label>Auto-throttle (no GAS button needed) <input type="checkbox" id="oAuto"></label>
+    <label>Graphics <select id="oQual"><option value="auto">Auto</option><option value="low">Low (fastest)</option><option value="med">Medium</option><option value="high">High (shadows)</option></select></label>
+    <label>Music <input type="checkbox" id="oMusic"></label>
+    <label>Sound <input type="checkbox" id="oSound"></label>
+    <button class="mid danger" id="oReset">Reset all progress</button>
+  </div>
+</div>
+
+<!-- Pause -->
+<div id="sPause" class="screen dim">
+  <h2>Paused</h2>
+  <div class="menu">
+    <button class="big" id="pResume">▶ Resume</button>
+    <button class="big alt" id="pCal">🎯 Recenter tilt</button>
+    <label class="inl">Sensitivity <input type="range" id="pSens" min="1" max="10" step="1"></label>
+    <button class="big alt" id="pRestart">↻ Restart</button>
+    <button class="big alt" id="pQuit">✖ Quit race</button>
+  </div>
+</div>
+
+<!-- Results -->
+<div id="sResults" class="screen dim">
+  <h2 id="rTitle">Race over</h2>
+  <div id="podium"></div>
+  <div id="rTable"></div>
+  <div class="menu row">
+    <button class="big" id="rNext">Next ›</button>
+    <button class="big alt" id="rAgain">↻ Race again</button>
+    <button class="big alt" id="rMenu">Menu</button>
+  </div>
+</div>
+
+<div id="rotate"><div>📱↻</div><p>Turn your device sideways<br>for the best ride</p><button class="mid" id="rotGo">Play anyway</button></div>
+
+<script type="module" src="game.js"></script>
+</body></html>
