@@ -322,7 +322,7 @@ function setupRace(ti) {
   }
   const trnd = rngf(def.seed * 13); const carCols = [0xe0e0e0, 0x2050c0, 0xc02030, 0x30a050, 0xf0c020, 0x404040, 0x7050c0];
   for (let k = 0; k < def.traffic; k++) { const m = makeCar(carCols[k % carCols.length]); scene.add(m); traffic.push({ m, s: 300 + (k + trnd() * .5) * (track.L - 400) / def.traffic, x: [-5, -1.8, 1.8, 5][Math.floor(trnd() * 4)], v: 14 + trnd() * 10 }); }
-  for (let k = 0; k < def.obst; k++) { const m = makeObstacle(def.theme); scene.add(m); const ob = { m, s: 250 + (k + trnd()) * (track.L - 300) / def.obst, x: (trnd() - .5) * 11 }; placeObj(m, ob.s, ob.x, 0); obstacles.push(ob); }
+  for (let k = 0; k < def.obst; k++) { const m = makeObstacle(def.theme); scene.add(m); const ob = { cone: def.theme === 'city' || def.theme === 'coast', hitT: 0, fly: null, m, s: 250 + (k + trnd()) * (track.L - 300) / def.obst, x: (trnd() - .5) * 11 }; placeObj(m, ob.s, ob.x, 0); obstacles.push(ob); }
 }
 const F = mkF(), F2 = mkF();
 function placeObj(obj, s, x, yawRel) { frameAt(s, F); obj.position.copy(F.p).addScaledVector(F.r, x); obj.rotation.order = 'YXZ'; obj.rotation.y = Math.atan2(-F.t.x, -F.t.z) - yawRel; obj.rotation.x = Math.atan(F.sl); return F; }
@@ -400,6 +400,7 @@ function poseRacer(r, dt, k) {
   placeObj(b.root, r.s, r.x, yaw);
   const lt = r.crashT > 0 ? r.cdir * -1.45 : -r.steer * .55 * Math.min(1, r.v / 18);
   r.leanA = lerp(r.leanA, lt, Math.min(1, dt * (r.crashT > 0 ? 6 : 8))); b.lean.rotation.z = r.leanA;
+  if (r.wob > 0) { r.wob = Math.max(0, r.wob - dt); const w = r.wob * r.wob, ph = (1 - r.wob) * 26; b.lean.rotation.z += Math.sin(ph) * .32 * w; b.root.rotation.y += Math.sin(ph * .8 + 1) * .14 * w; } // cone wobble
   r.wspin += r.v * dt / b.wheelR; b.wf.rotation.x = -r.wspin; b.wr.rotation.x = -r.wspin;
   if (r.crashT > 0) { const t = 2.6 - r.crashT; const air = Math.min(t, 1.2) / 1.2; const up = t < 1.2 ? Math.sin(air * Math.PI) * 1.6 : 0; const getUp = clamp((t - 1.8) / .6, 0, 1);
     b.rider.position.set(r.cdir * air * 1.4, up, air * 1.6); b.rider.rotation.set(t < 1.2 ? t * 6 : 0, 0, t < 1.2 ? t * 2.5 * r.cdir : (1 - getUp) * r.cdir * 1.3); }
@@ -410,7 +411,9 @@ function poseRacer(r, dt, k) {
 function updateTraffic(dt) {
   for (const c of traffic) { c.s = (c.s + c.v * dt) % track.L; placeObj(c.m, c.s, c.x, 0);
     for (const r of racers) { if (r.crashT > 0 || r.ghost > 0) continue; const ds = wrapDS(c.s - r.s); if (Math.abs(ds) < 3 && Math.abs(c.x - r.x) < 1.5) { if (r.v > c.v + 3) crash(r, r.x > c.x ? 1 : -1); else r.v = Math.min(r.v, c.v); } } }
-  for (const o of obstacles) for (const r of racers) { if (r.crashT > 0 || r.ghost > 0) continue; const ds = wrapDS(o.s - r.s); if (Math.abs(ds) < 1.3 && Math.abs(o.x - r.x) < 1.2) { if (r.v > 12) crash(r, r.x > o.x ? 1 : -1); else r.v = 0; } }
+  for (const o of obstacles) { if (o.hitT > 0) o.hitT -= dt; if (o.fly) { const f = o.fly; f.t += dt; o.x += f.vx * dt; o.s += f.vs * dt; placeObj(o.m, o.s, o.x, 0); o.m.position.y += Math.max(0, f.vy * f.t - 9 * f.t * f.t); o.m.rotation.z += f.spin * dt; o.m.rotation.x += f.spin * .7 * dt; if (f.t > 1.2) { o.fly = null; o.m.visible = false; } } }
+  for (const o of obstacles) for (const r of racers) { if (r.crashT > 0 || r.ghost > 0 || !o.m.visible) continue;
+    if (o.cone) { if (o.hitT > 0) continue; const ds = wrapDS(o.s - r.s); if (Math.abs(ds) < 1.3 && Math.abs(o.x - r.x) < 1.2) { o.hitT = 2; r.v *= .65; r.wob = 1; const side = o.x >= r.x ? 1 : -1; o.fly = { t: 0, vx: side * (5 + Math.random() * 3), vs: Math.max(4, r.v * .6), vy: 5, spin: side * 9 }; if (r.isP) { shake = Math.max(shake, .25); sfx.thud(.7); popText(r, 'WOBBLE!'); try { navigator.vibrate && navigator.vibrate(40); } catch (e) { } window.__coneHits = (window.__coneHits || 0) + 1; } } continue; } const ds = wrapDS(o.s - r.s); if (Math.abs(ds) < 1.3 && Math.abs(o.x - r.x) < 1.2) { if (r.v > 12) crash(r, r.x > o.x ? 1 : -1); else r.v = 0; } }
   for (let a = 0; a < racers.length; a++) for (let c = a + 1; c < racers.length; c++) { const A = racers[a], B = racers[c]; if (A.crashT > 0 || B.crashT > 0) continue; if (Math.abs(wrapDS(A.s - B.s)) < 1.9 && Math.abs(A.x - B.x) < .9) { const push = (.9 - Math.abs(A.x - B.x)) * .5 * (A.x >= B.x ? 1 : -1); A.x += push; B.x -= push; } }
 }
 
@@ -634,4 +637,4 @@ function showResults() {
 $('rAgain').onclick = () => startRace(curTrack); $('rMenu').onclick = () => goMenu('sTitle'); $('rNext').onclick = () => startRace(curTrack + 1);
 
 resize(); refreshGarageBike(); applySound(); requestAnimationFrame(loop);
-window.TR = { get S() { return S; }, get rot() { return ROT; }, get paused() { return paused; }, get softPaused() { return softPaused; }, get RW() { return RW; }, setRot, get state() { return state; }, startRace, tilt, racers: () => racers, player, track: () => track, finish: () => { const p = player(); p.lap = track.def.laps - 1; p.s = track.L - 2; p.v = 40; }, crash: r => crash(r || player()), q: () => qName, goMenu, steer: () => readInput(0.016).steer, fastStart: () => { countT = 0.01; }, riderRect: () => { const bx = new THREE.Box3().setFromObject(player().b.root); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < 8; i++) { const v = new THREE.Vector3(i & 1 ? bx.max.x : bx.min.x, i & 2 ? bx.max.y : bx.min.y, i & 4 ? bx.max.z : bx.min.z).project(camera); const X = (v.x + 1) / 2 * VW(), Y = (1 - v.y) / 2 * VH(); x0 = Math.min(x0, X); x1 = Math.max(x1, X); y0 = Math.min(y0, Y); y1 = Math.max(y1, Y); } return { x0, y0, x1, y1 }; } };
+window.TR = { obstacles: () => obstacles, snapCam: () => { camInit = false; }, get S() { return S; }, get rot() { return ROT; }, get paused() { return paused; }, get softPaused() { return softPaused; }, get RW() { return RW; }, setRot, get state() { return state; }, startRace, tilt, racers: () => racers, player, track: () => track, finish: () => { const p = player(); p.lap = track.def.laps - 1; p.s = track.L - 2; p.v = 40; }, crash: r => crash(r || player()), q: () => qName, goMenu, steer: () => readInput(0.016).steer, fastStart: () => { countT = 0.01; }, riderRect: () => { const bx = new THREE.Box3().setFromObject(player().b.root); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < 8; i++) { const v = new THREE.Vector3(i & 1 ? bx.max.x : bx.min.x, i & 2 ? bx.max.y : bx.min.y, i & 4 ? bx.max.z : bx.min.z).project(camera); const X = (v.x + 1) / 2 * VW(), Y = (1 - v.y) / 2 * VH(); x0 = Math.min(x0, X); x1 = Math.max(x1, X); y0 = Math.min(y0, Y); y1 = Math.max(y1, Y); } return { x0, y0, x1, y1 }; } };
