@@ -19,15 +19,15 @@ const GEAR = ['#ffffff', '#111111', '#e63946', '#ffd60a', '#3a86ff', '#2ec4b6', 
 const UPG_COST = [400, 700, 1100, 1600, 2300];
 const RIVALS = ['Dusty', 'Zippy', 'Turbo Tess', 'Max Revs', 'Lola Loop', 'Sprocket', 'Nitro Nik', 'Ace', 'Vroom Vic', 'Pip'];
 const TRACKS = [
-  { id: 'coast', name: 'Sunrise Coast', desc: 'Seaside highway, palm trees and a few beach cars.', theme: 'coast', rw: 10.6, R: 430, seed: 11, rad: [[2, .12, 0], [3, .08, 1], [5, .045, 2]], hills: [[2, 6, 0], [5, 2.5, 1]], laps: 2, traffic: 6, obst: 6, diff: 0,
+  { id: 'coast', name: 'Sunrise Coast', desc: 'Seaside highway, palm trees and a few beach cars.', theme: 'coast', rw: 10.6, R: 430, seed: 11, rad: [[2, .12, 0], [3, .08, 1], [5, .045, 2]], hills: [[2, 6, 0], [5, 2.5, 1]], laps: 2, traffic: 6, obst: 6, cross: 5, diff: 0,
     sky: [0x3d8fe0, 0xffd2a0, 0x9fc4e8], sun: [-0.6, 0.28, -0.5], sunCol: 0xffe2b8, sunInt: 2.8, hemi: [0xcfe4ff, 0x9a8a60, 1.25], fog: [0xf6d8b4, 140, 1200], grip: 1, art: 'linear-gradient(#4a9cf0,#ffd2a0 70%,#2a7fc0 71%)' },
-  { id: 'canyon', name: 'Red Rock Canyon', desc: 'Hot desert canyon with big hills, cacti and rocks.', theme: 'canyon', rw: 9.8, R: 470, seed: 22, rad: [[2, .1, .5], [4, .1, 0], [7, .035, 1]], hills: [[3, 14, 0], [6, 5, 2]], laps: 2, traffic: 3, obst: 12, diff: 1,
+  { id: 'canyon', name: 'Red Rock Canyon', desc: 'Hot desert canyon with big hills, cacti and rocks.', theme: 'canyon', rw: 9.8, R: 470, seed: 22, rad: [[2, .1, .5], [4, .1, 0], [7, .035, 1]], hills: [[3, 14, 0], [6, 5, 2]], laps: 2, traffic: 3, obst: 12, cross: 2, diff: 1,
     sky: [0x3f74c8, 0xffc488, 0xd89a66], sun: [0.5, 0.45, -0.4], sunCol: 0xfff0d0, sunInt: 3.0, hemi: [0xd8e6ff, 0xb0603a, 1.2], fog: [0xf0c294, 160, 1100], grip: .95, art: 'linear-gradient(#3f74c8,#ffc488 60%,#c8603a 61%)' },
-  { id: 'city', name: 'Neon City Night', desc: 'Downtown at night with streetlights, skyscrapers and lots of traffic.', theme: 'city', R: 400, seed: 33, rad: [[2, .15, 1], [4, .07, 0], [6, .02, 1]], hills: [[2, 3, 0], [5, 1.5, 1]], laps: 2, traffic: 16, obst: 8, diff: 2,
+  { id: 'city', name: 'Neon City Night', desc: 'Downtown at night with streetlights, skyscrapers and lots of traffic.', theme: 'city', R: 400, seed: 33, rad: [[2, .15, 1], [4, .07, 0], [6, .02, 1]], hills: [[2, 3, 0], [5, 1.5, 1]], laps: 2, traffic: 16, obst: 8, cross: 8, diff: 2,
     sky: [0x05061a, 0x2a1850, 0x120c2a], sun: [0.3, 0.6, 0.4], sunCol: 0x8fa0ff, sunInt: 0.9, hemi: [0x5060a0, 0x201830, 1.1], fog: [0x1a1238, 80, 800], grip: 1, night: true, art: 'linear-gradient(#05061a,#3a1a6a 70%,#111 71%)' },
-  { id: 'forest', name: 'Pine Ridge', desc: 'Steep forest mountain roads at sunset. Tight bends!', theme: 'forest', rw: 9, R: 500, seed: 44, rad: [[3, .12, 2], [5, .07, 1], [8, .03, 0]], hills: [[2, 22, 0], [4, 8, 1]], laps: 2, traffic: 4, obst: 9, diff: 3,
+  { id: 'forest', name: 'Pine Ridge', desc: 'Steep forest mountain roads at sunset. Tight bends!', theme: 'forest', rw: 9, R: 500, seed: 44, rad: [[3, .12, 2], [5, .07, 1], [8, .03, 0]], hills: [[2, 22, 0], [4, 8, 1]], laps: 2, traffic: 4, obst: 9, cross: 2, diff: 3,
     sky: [0x3b4fa0, 0xff9a5a, 0x6a4a6a], sun: [-0.7, 0.14, 0.3], sunCol: 0xffb070, sunInt: 2.4, hemi: [0xffd0b0, 0x3a5a2a, 1.1], fog: [0xe08a68, 110, 950], grip: 1, art: 'linear-gradient(#3b4fa0,#ff9a5a 65%,#2d5a2a 66%)' },
-  { id: 'snow', name: 'Frosty Pass', desc: 'Snowy mountain pass with falling snow. Slippery!', theme: 'snow', R: 460, seed: 55, rad: [[2, .1, 2], [3, .1, 0], [6, .05, 1]], hills: [[3, 18, 1], [5, 6, 0]], laps: 2, traffic: 4, obst: 9, diff: 4,
+  { id: 'snow', name: 'Frosty Pass', desc: 'Snowy mountain pass with falling snow. Slippery!', theme: 'snow', R: 460, seed: 55, rad: [[2, .1, 2], [3, .1, 0], [6, .05, 1]], hills: [[3, 18, 1], [5, 6, 0]], laps: 2, traffic: 4, obst: 9, cross: 0, diff: 4,
     sky: [0x8aa4c4, 0xe6eef6, 0xc8d4e0], sun: [0.4, 0.5, -0.6], sunCol: 0xffffff, sunInt: 2.0, hemi: [0xeef4ff, 0xa0a8b8, 1.5], fog: [0xdfe7f0, 90, 850], grip: .78, art: 'linear-gradient(#8aa4c4,#e6eef6 65%,#fff 66%)' },
 ];
 
@@ -169,7 +169,7 @@ function makeBike(o) {
 }
 
 /* ---------------- track ---------------- */
-let scene, track, sun, hemi, racers = [], traffic = [], obstacles = [], dust, snow;
+let scene, track, sun, hemi, racers = [], traffic = [], obstacles = [], crossTraffic = [], dust, snow;
 function genTrack(def) {
   const ctrl = [], NC = 400;
   for (let j = 0; j < NC; j++) {
@@ -300,6 +300,19 @@ function makeCar(color) {
   part(geo.box, mats.light, .4, .15, .05, -.7, .75, -2.21, g); part(geo.box, mats.light, .4, .15, .05, .7, .75, -2.21, g);
   return g;
 }
+function makeTruck(color) {
+  const g = new THREE.Group(); const b = M(color, 90);
+  // bright cab + box so cross traffic reads from far ahead
+  part(geo.box, b, 2.4, 1.1, 3.2, 0, .95, .4, g);
+  part(geo.box, M(0x1a2230, 140), 2.1, .7, 1.4, 0, 1.7, -.3, g);
+  part(geo.box, M(color === 0xffd040 ? 0xe8a010 : 0xd8dce4, 40), 2.5, 1.6, 3.6, 0, 1.4, 3.6, g); // cargo box
+  for (const [x, z] of [[-1.05, -1.1], [1.05, -1.1], [-1.05, 1.6], [1.05, 1.6], [-1.05, 4.4], [1.05, 4.4]]) { const w = part(geo.cyl, mats.tyre, .42, .36, .42, x, .42, z, g); w.rotation.z = Math.PI / 2; }
+  part(geo.box, mats.light, .45, .22, .08, -.8, .9, -1.25, g); part(geo.box, mats.light, .45, .22, .08, .8, .9, -1.25, g);
+  part(geo.box, mats.tail, .5, .2, .08, -.85, 1.1, 5.45, g); part(geo.box, mats.tail, .5, .2, .08, .85, 1.1, 5.45, g);
+  // roof beacon so kids spot it early
+  part(geo.sph, M(0xff3030, 80), .28, .28, .28, 0, 2.15, -.2, g);
+  return g;
+}
 function makeObstacle(th) {
   const g = new THREE.Group();
   if (th === 'city' || th === 'coast') { for (const dx of [-.6, .6]) { part(new THREE.ConeGeometry(.3, .8, 10), M(0xff6a00, 20), 1, 1, 1, dx, .4, 0, g); part(geo.box, M(0xffffff), .45, .08, .45, dx, .04, 0, g); } }
@@ -311,7 +324,7 @@ function makeObstacle(th) {
 /* ---------------- racers ---------------- */
 function makeRacer(o) { const b = makeBike(o); scene.add(b.root); return Object.assign({ s: 0, lap: -1, x: 0, xd: 0, v: 0, steer: 0, leanA: 0, crashT: 0, ghost: 0, kickT: 0, kickSide: 0, kickCd: 0, done: false, ft: 0, kos: 0, wspin: 0, cdir: 1, laneT: 0, aiCd: 0, aggr: 0 }, o, { b }); }
 function setupRace(ti) {
-  const def = TRACKS[ti]; buildWorld(def); racers = []; traffic = []; obstacles = [];
+  const def = TRACKS[ti]; buildWorld(def); racers = []; traffic = []; obstacles = []; crossTraffic = [];
   const st = bikeStats(S.bike); const rnd = rngf(Date.now() & 0xffff);
   const names = RIVALS.slice().sort(() => rnd() - .5);
   for (let k = 0; k < 8; k++) {
@@ -323,6 +336,13 @@ function setupRace(ti) {
   const trnd = rngf(def.seed * 13); const carCols = [0xe0e0e0, 0x2050c0, 0xc02030, 0x30a050, 0xf0c020, 0x404040, 0x7050c0];
   for (let k = 0; k < def.traffic; k++) { const m = makeCar(carCols[k % carCols.length]); scene.add(m); traffic.push({ m, s: 300 + (k + trnd() * .5) * (track.L - 400) / def.traffic, x: [-5, -1.8, 1.8, 5][Math.floor(trnd() * 4)], v: 14 + trnd() * 10 }); }
   for (let k = 0; k < def.obst; k++) { const m = makeObstacle(def.theme); scene.add(m); const ob = { cone: def.theme === 'city' || def.theme === 'coast', hitT: 0, fly: null, m, s: 250 + (k + trnd()) * (track.L - 300) / def.obst, x: (trnd() - .5) * 11 }; placeObj(m, ob.s, ob.x, 0); obstacles.push(ob); }
+  const nCross = def.cross || 0; const xCols = [0xffd040, 0x2080e0, 0xe03040, 0x30b060, 0xf0f0f0, 0xff7a20];
+  for (let k = 0; k < nCross; k++) {
+    const m = makeTruck(xCols[k % xCols.length]); scene.add(m);
+    const side = k % 2 ? 1 : -1;
+    const c = { m, s: 280 + (k + .35) * (track.L - 360) / Math.max(1, nCross), x: side * (RW + 11), side, dir: -side, spd: 14 + trnd() * 9, phase: trnd() * 5, period: 5.5 + trnd() * 3.5, hitT: 0, crossing: false, wait: true };
+    placeObj(m, c.s, c.x, Math.PI / 2); m.visible = true; crossTraffic.push(c);
+  }
 }
 const F = mkF(), F2 = mkF();
 function placeObj(obj, s, x, yawRel) { frameAt(s, F); obj.position.copy(F.p).addScaledVector(F.r, x); obj.rotation.order = 'YXZ'; obj.rotation.y = Math.atan2(-F.t.x, -F.t.z) - yawRel; obj.rotation.x = Math.atan(F.sl); return F; }
@@ -330,7 +350,7 @@ const player = () => racers.find(r => r.isP);
 const maxV = r => 40 + 34 * r.st.spd;
 const steerRate = r => (6 + 6 * r.st.hnd) * track.def.grip;
 const DRIFT = .05;
-const DIFFS = { easy: { ai: .82, aggr: .45, assist: 1, offF: .82, band: .82 }, normal: { ai: .95, aggr: .8, assist: .5, offF: .7, band: .9 }, pro: { ai: 1.03, aggr: 1.25, assist: 0, offF: .5, band: 1 } };
+const DIFFS = { easy: { ai: .93, aggr: .65, assist: 1, offF: .82, band: .78, catch: 1.36 }, normal: { ai: 1.0, aggr: .95, assist: .5, offF: .7, band: .86, catch: 1.42 }, pro: { ai: 1.06, aggr: 1.35, assist: 0, offF: .5, band: .94, catch: 1.48 } };
 const DF_ = () => DIFFS[S.set.diff] || DIFFS.easy;
 const progress = r => r.lap * track.L + r.s;
 const wrapDS = ds => { const L = track.L; if (ds > L / 2) ds -= L; if (ds < -L / 2) ds += L; return ds; };
@@ -348,7 +368,7 @@ function resolveKick(r) {
 }
 function updateRacer(r, dt, inp) {
   const tr = track; frameAt(r.s, F); const k = F.k, mv = maxV(r), sr = steerRate(r);
-  r.kickCd -= dt; r.ghost -= dt;
+  r.kickCd -= dt; r.ghost -= dt; r._catchUp = 0;
   if (r.kickT > 0) { const prev = r.kickT; r.kickT -= dt; if (r.kickT < .3 && r.kickT > .05 && !r.kickHit) r.kickHit = resolveKick(r); }
   if (r.crashT > 0) {
     r.crashT -= dt; r.cv = Math.max(0, r.cv - 22 * dt); r.v = r.cv; r.s += r.cv * dt; r.x += r.cdir * Math.min(r.cv, 8) * .35 * dt; r.x = clamp(r.x, -18, 18); r.xd = 0;
@@ -364,21 +384,41 @@ function updateRacer(r, dt, inp) {
         steer = clamp(steer, -1, 1); } }
     else {
       let tx = r.laneT; r.aiCd -= dt;
-      const look = (s0, x0) => { const ds = wrapDS(s0 - r.s); return ds > 0 && ds < 38 && Math.abs(x0 - r.x) < 2.6; };
+      const look = (s0, x0, near = 38) => { const ds = wrapDS(s0 - r.s); return ds > 0 && ds < near && Math.abs(x0 - r.x) < 2.6; };
       for (const c of traffic) if (look(c.s, c.x)) { tx = c.x > r.x ? c.x - 3.4 : c.x + 3.4; if (Math.abs(tx) > 7) tx = c.x + (c.x > 0 ? -3.4 : 3.4); }
       for (const o of obstacles) if (look(o.s, o.x)) { tx = o.x > r.x ? o.x - 3 : o.x + 3; if (Math.abs(tx) > 7) tx = o.x + (o.x > 0 ? -3 : 3); }
+      for (const c of crossTraffic) if (c.crossing && look(c.s, c.x, 48)) { // dodge crossing trucks
+        const escape = Math.abs(c.x - r.x) < 2.8 ? (r.x >= 0 ? -1 : 1) : Math.sign(r.x - c.x) || 1;
+        tx = clamp(c.x + escape * 4.2, -6.5, 6.5); }
       if (r.aiCd < 0) { r.aiCd = 2 + Math.random() * 3; r.laneT = clamp(r.laneT + (Math.random() - .5) * 4, -5.5, 5.5); }
       const need = (tx - r.x) * 1.4 + k * r.v * r.v * DRIFT; steer = clamp(need / (sr * Math.min(1, .35 + r.v / 25)), -1, 1);
-      const gap = progress(r) - progress(player()); let band = 1; if (gap > 120) band = DF_().band; else if (gap > 50) band = (1 + DF_().band) / 2; else if (gap < -120) band = 1.1;
+      // Rubber-band: catch up when behind the player, ease off when far ahead — keep races tight
+      const pl = player();
+      const gap = progress(r) - progress(pl); // + = AI ahead of player
+      const DF = DF_(); let band = 1, catchUp = 0;
+      if (gap < -6) { catchUp = Math.min(1, (-gap - 6) / 70); band = 1 + catchUp * (DF.catch - 1); }
+      else if (gap > 28) band = Math.max(DF.band, 1 - Math.min(1 - DF.band, (gap - 28) / 130 * (1 - DF.band)));
+      else if (gap > 8) band = 1 - (gap - 8) / 20 * (1 - (1 + DF.band) / 2);
+      r._catchUp = catchUp;
       const vCurve = Math.sqrt(sr * .85 / (Math.abs(k) * DRIFT + 1e-4));
-      const tv = Math.min(mv * band, vCurve); thr = r.v < tv; brk = r.v > tv + 4;
+      // draft: sit on the player's bumper — a little faster while behind so 1st isn't a runaway
+      let tv = Math.min(mv * band, vCurve * (1 + catchUp * .7));
+      if (catchUp > 0) {
+        const ceiling = Math.max(mv * DF.catch, pl.v + 8 + catchUp * 6);
+        tv = Math.min(Math.max(tv, pl.v + 5 + catchUp * 10), ceiling, vCurve * (1 + catchUp) + 14);
+      }
+      thr = r.v < tv; brk = r.v > tv + (catchUp > .2 ? 12 : 4);
+      // position rubber-band: gently reel the pack in so a clean lead can't become a runaway
+      if (gap < -22 && r.crashT <= 0) r.s += Math.min(16, (-gap - 22) * .18) * dt;
+      else if (gap > 55 && r.crashT <= 0) r.s -= Math.min(10, (gap - 55) * .1) * dt;
       for (const o of racers) { if (o === r || o.crashT > 0 || o.ghost > 0) continue; if (Math.abs(wrapDS(o.s - r.s)) > 2) continue; const dx = o.x - r.x; if (Math.abs(dx) > .6 && Math.abs(dx) < 2.2 && Math.random() < dt * r.aggr * (o.isP ? 1.2 : .35)) doKick(r, Math.sign(dx)); }
     }
     const off = Math.abs(r.x) > RW - .2, offF = off ? (r.model === 'hopper' ? Math.max(.78, DF_().offF) : (r.isP ? DF_().offF : .5)) : 1;
     const mvE = mv * offF;
-    if (thr) r.v += (8 + 9 * r.st.acc) * dt * Math.max(.05, 1 - (r.v / mvE) ** 2); else r.v -= (1.2 + r.v * .035) * dt; // gentle coast
+    const accMul = (!r.isP && r._catchUp) ? (1 + r._catchUp * 1.1) : 1;
+    if (thr) r.v += (8 + 9 * r.st.acc) * accMul * dt * Math.max(.05, 1 - (r.v / mvE) ** 2); else r.v -= (1.2 + r.v * .035) * dt; // gentle coast
     if (brk) r.v -= 28 * dt;
-    if (r.v > mvE) r.v -= (r.v - mvE) * (r.isP ? .7 : 1.6) * dt;
+    if (r.v > mvE) r.v -= (r.v - mvE) * (r.isP ? .7 : (r._catchUp ? .2 : 1.6)) * dt; // let drafting AI briefly exceed bike max
     r.v = Math.max(0, r.v);
     r.steer = lerp(r.steer, steer, Math.min(1, dt * 10));
     r.xd = r.steer * sr * Math.min(1, .35 + r.v / 25) - k * r.v * r.v * DRIFT;
@@ -414,7 +454,37 @@ function updateTraffic(dt) {
   for (const o of obstacles) { if (o.hitT > 0) o.hitT -= dt; if (o.fly) { const f = o.fly; f.t += dt; o.x += f.vx * dt; o.s += f.vs * dt; placeObj(o.m, o.s, o.x, 0); o.m.position.y += Math.max(0, f.vy * f.t - 9 * f.t * f.t); o.m.rotation.z += f.spin * dt; o.m.rotation.x += f.spin * .7 * dt; if (f.t > 1.2) { o.fly = null; o.m.visible = false; } } }
   for (const o of obstacles) for (const r of racers) { if (r.crashT > 0 || r.ghost > 0 || !o.m.visible) continue;
     if (o.cone) { if (o.hitT > 0) continue; const ds = wrapDS(o.s - r.s); if (Math.abs(ds) < 1.3 && Math.abs(o.x - r.x) < 1.2) { o.hitT = 2; r.v *= .65; r.wob = 1; const side = o.x >= r.x ? 1 : -1; o.fly = { t: 0, vx: side * (5 + Math.random() * 3), vs: Math.max(4, r.v * .6), vy: 5, spin: side * 9 }; if (r.isP) { shake = Math.max(shake, .25); sfx.thud(.7); popText(r, 'WOBBLE!'); try { navigator.vibrate && navigator.vibrate(40); } catch (e) { } window.__coneHits = (window.__coneHits || 0) + 1; } } continue; } const ds = wrapDS(o.s - r.s); if (Math.abs(ds) < 1.3 && Math.abs(o.x - r.x) < 1.2) { if (r.v > 12) crash(r, r.x > o.x ? 1 : -1); else r.v = 0; } }
+  updateCrossTraffic(dt);
   for (let a = 0; a < racers.length; a++) for (let c = a + 1; c < racers.length; c++) { const A = racers[a], B = racers[c]; if (A.crashT > 0 || B.crashT > 0) continue; if (Math.abs(wrapDS(A.s - B.s)) < 1.9 && Math.abs(A.x - B.x) < .9) { const push = (.9 - Math.abs(A.x - B.x)) * .5 * (A.x >= B.x ? 1 : -1); A.x += push; B.x -= push; } }
+}
+function updateCrossTraffic(dt) {
+  const p = player();
+  for (const c of crossTraffic) {
+    if (c.hitT > 0) c.hitT -= dt;
+    c.phase += dt;
+    if (!c.crossing) {
+      const ds = wrapDS(c.s - p.s);
+      // start crossing when the player is approaching so the truck is clearly visible ahead
+      if (ds > 28 && ds < 95 && c.phase > c.period) {
+        c.crossing = true; c.phase = 0; c.x = c.side * (RW + 12); c.dir = -c.side; c.m.visible = true;
+      }
+      placeObj(c.m, c.s, c.x, Math.PI / 2);
+      // park off-road, still visible as a cue
+      c.m.visible = wrapDS(c.s - p.s) > -40 && wrapDS(c.s - p.s) < 160;
+    } else {
+      c.x += c.dir * c.spd * dt;
+      placeObj(c.m, c.s, c.x, Math.PI / 2);
+      for (const r of racers) {
+        if (r.crashT > 0 || r.ghost > 0 || c.hitT > 0) continue;
+        const ds = wrapDS(c.s - r.s);
+        if (Math.abs(ds) < 2.4 && Math.abs(c.x - r.x) < 2.0) {
+          c.hitT = 1.4; r.v *= .65; r.wob = 1;
+          if (r.isP) { shake = Math.max(shake, .3); sfx.thud(.85); popText(r, 'WOBBLE!'); try { navigator.vibrate && navigator.vibrate(45); } catch (e) { } window.__crossHits = (window.__crossHits || 0) + 1; }
+        }
+      }
+      if (Math.abs(c.x) > RW + 14) { c.crossing = false; c.side = -c.side; c.x = c.side * (RW + 11); c.period = 5 + Math.random() * 4; c.phase = 0; }
+    }
+  }
 }
 
 /* ---------------- input ---------------- */
@@ -527,18 +597,18 @@ function tickRace(dt) {
   const racing = countT <= 0; if (racing && !player().done) raceTime += dt;
   const inp = readInput(dt);
   for (const r of racers) { if (!racing) continue; if (r.isP) updateRacer(r, dt, r.done ? { steer: 0, thr: false, brk: true, kick: 0 } : inp); else updateRacer(r, dt, null); }
-  if (racing) updateTraffic(dt); else traffic.forEach(c => placeObj(c.m, c.s, c.x, 0));
+  if (racing) updateTraffic(dt); else { traffic.forEach(c => placeObj(c.m, c.s, c.x, 0)); crossTraffic.forEach(c => placeObj(c.m, c.s, c.x, Math.PI / 2)); }
   stepParticles(dust, dt);
   const p = player(); frameAt(p.s, F);
-  const v = p.v, back = 7.6 + v * .035, hgt = 3.7 + v * .01; // higher + farther back: see the road ahead
+  const v = p.v, back = 6.5 + v * .032, hgt = 3.15 + v * .008; // mid zoom: closer than far POV, still readable road
   const want = F.p.clone().addScaledVector(F.t, -back).addScaledVector(F.r, p.x * .85); want.y = Math.max(want.y, F.p.y) + hgt;
-  frameAt(p.s + 26 + v * .12, F2); const look = F2.p.clone().addScaledVector(F2.r, p.x * .6); look.y += .9;
+  frameAt(p.s + 20 + v * .09, F2); const look = F2.p.clone().addScaledVector(F2.r, p.x * .7); look.y += 1.1;
   if (!camInit) { camPos.copy(want); camLook.copy(look); camInit = true; }
-  camPos.lerp(want, Math.min(1, dt * 6)); camLook.lerp(look, Math.min(1, dt * 5));
+  camPos.lerp(want, Math.min(1, dt * 6.5)); camLook.lerp(look, Math.min(1, dt * 6));
   camera.position.copy(camPos); if (shake > 0) { shake -= dt; camera.position.x += (Math.random() - .5) * shake * .6; camera.position.y += (Math.random() - .5) * shake * .6; }
   camera.position.y += Math.sin(raceTime * 40) * .012 * clamp(v / 60, 0, 1);
   camera.lookAt(camLook); camera.rotateZ(p.leanA * .22);
-  const fov = (camera.aspect > 1.3 ? 66 : 70) + clamp(v / 70, 0, 1) * 10; if (Math.abs(camera.fov - fov) > .1) { camera.fov = lerp(camera.fov, fov, Math.min(1, dt * 3)); camera.updateProjectionMatrix(); }
+  const fov = (camera.aspect > 1.3 ? 63 : 66) + clamp(v / 70, 0, 1) * 11; if (Math.abs(camera.fov - fov) > .1) { camera.fov = lerp(camera.fov, fov, Math.min(1, dt * 3)); camera.updateProjectionMatrix(); }
   scene.userData.sky.position.copy(camera.position);
   sun.target.position.copy(p.b.root.position); sun.position.copy(p.b.root.position).addScaledVector(new THREE.Vector3(...track.def.sun).normalize(), 120);
   const hl = scene.userData.head; if (hl) { hl.position.copy(p.b.root.position).addScaledVector(F.t, -.5); hl.position.y += 1.3; hl.target.position.copy(p.b.root.position).addScaledVector(F.t, 30); }
@@ -637,4 +707,4 @@ function showResults() {
 $('rAgain').onclick = () => startRace(curTrack); $('rMenu').onclick = () => goMenu('sTitle'); $('rNext').onclick = () => startRace(curTrack + 1);
 
 resize(); refreshGarageBike(); applySound(); requestAnimationFrame(loop);
-window.TR = { obstacles: () => obstacles, snapCam: () => { camInit = false; }, get S() { return S; }, get rot() { return ROT; }, get paused() { return paused; }, get softPaused() { return softPaused; }, get RW() { return RW; }, setRot, get state() { return state; }, startRace, tilt, racers: () => racers, player, track: () => track, finish: () => { const p = player(); p.lap = track.def.laps - 1; p.s = track.L - 2; p.v = 40; }, crash: r => crash(r || player()), q: () => qName, goMenu, steer: () => readInput(0.016).steer, fastStart: () => { countT = 0.01; }, riderRect: () => { const bx = new THREE.Box3().setFromObject(player().b.root); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < 8; i++) { const v = new THREE.Vector3(i & 1 ? bx.max.x : bx.min.x, i & 2 ? bx.max.y : bx.min.y, i & 4 ? bx.max.z : bx.min.z).project(camera); const X = (v.x + 1) / 2 * VW(), Y = (1 - v.y) / 2 * VH(); x0 = Math.min(x0, X); x1 = Math.max(x1, X); y0 = Math.min(y0, Y); y1 = Math.max(y1, Y); } return { x0, y0, x1, y1 }; } };
+window.TR = { obstacles: () => obstacles, crossTraffic: () => crossTraffic, snapCam: () => { camInit = false; }, get S() { return S; }, get rot() { return ROT; }, get paused() { return paused; }, get softPaused() { return softPaused; }, get RW() { return RW; }, setRot, get state() { return state; }, startRace, tilt, racers: () => racers, player, track: () => track, finish: () => { const p = player(); p.lap = track.def.laps - 1; p.s = track.L - 2; p.v = 40; }, crash: r => crash(r || player()), q: () => qName, goMenu, steer: () => readInput(0.016).steer, fastStart: () => { countT = 0.01; }, riderRect: () => { const bx = new THREE.Box3().setFromObject(player().b.root); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < 8; i++) { const v = new THREE.Vector3(i & 1 ? bx.max.x : bx.min.x, i & 2 ? bx.max.y : bx.min.y, i & 4 ? bx.max.z : bx.min.z).project(camera); const X = (v.x + 1) / 2 * VW(), Y = (1 - v.y) / 2 * VH(); x0 = Math.min(x0, X); x1 = Math.max(x1, X); y0 = Math.min(y0, Y); y1 = Math.max(y1, Y); } return { x0, y0, x1, y1 }; }, forceCross: i => { const c = crossTraffic[i|0]; if (!c) return null; c.crossing = true; c.phase = 0; c.x = c.side * (RW + 4); c.dir = -c.side; c.hitT = 0; c.m.visible = true; placeObj(c.m, c.s, c.x, Math.PI / 2); return { s: c.s, x: c.x, side: c.side }; } };
