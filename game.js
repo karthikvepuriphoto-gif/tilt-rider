@@ -163,7 +163,7 @@ function makeBike(o) {
   for (const sx of [-1, 1]) { const sh = new THREE.Vector3(sx * .24, seatY + .05 + .58 * Math.cos(tuck), .2 - .58 * Math.sin(tuck)); const hd = new THREE.Vector3(sx * .28, barY, barZ);
     const a = new THREE.Mesh(geo.box, jk); a.position.copy(sh).add(hd).multiplyScalar(.5); a.scale.set(.11, .11, sh.distanceTo(hd)); rider.add(a); a.lookAt(hd); part(geo.sph, mats.glove, .07, .07, .07, hd.x, hd.y, hd.z, rider); }
   const legs = [];
-  for (const sx of [-1, 1]) { const hip = new THREE.Group(); hip.position.set(sx * .17, seatY + .08, .22); rider.add(hip); part(geo.box, pants, .14, .14, .5, 0, 0, -.22, hip); const knee = new THREE.Group(); knee.position.set(0, 0, -.44); hip.add(knee); part(geo.box, pants, .13, .48, .13, 0, -.22, .05, knee, .3); part(geo.box, mats.dark, .14, .1, .24, 0, -.46, -.02, knee); legs.push(hip); }
+  for (const sx of [-1, 1]) { const hip = new THREE.Group(); hip.position.set(sx * .17, seatY + .08, .22); rider.add(hip); part(geo.box, pants, .14, .14, .5, 0, 0, -.22, hip); const knee = new THREE.Group(); knee.position.set(0, 0, -.44); hip.add(knee); part(geo.box, pants, .13, .48, .13, 0, -.22, .05, knee, .3); part(geo.box, mats.dark, .14, .1, .24, 0, -.46, -.02, knee); hip.userData.knee = knee; legs.push(hip); }
   root.traverse(m => { if (m.isMesh) m.castShadow = true; });
   return { root, lean, rider, wf, wr: wrr, legs, torso, wheelR: wr };
 }
@@ -359,7 +359,7 @@ function crash(r, dir) {
   if (r.crashT > 0 || r.ghost > 0) return; r.crashT = 2.6; r.cdir = dir || (Math.random() < .5 ? -1 : 1); r.cv = r.v;
   if (r.isP) { sfx.crash(); banner('Whoops! Back on in a sec…', 1800); shake = .6; } else sfx.thud(Math.max(.2, 1 - Math.abs(progress(r) - progress(player())) / 60));
 }
-function doKick(r, side) { if (r.kickCd > 0 || r.crashT > 0) return; r.kickT = .4; r.kickSide = side; r.kickCd = .9; r.kickHit = false; if (r.isP) sfx.whoosh(); }
+function doKick(r, side) { if (r.kickCd > 0 || r.crashT > 0) return; r.kickT = .55; r.kickSide = side; r.kickCd = .85; r.kickHit = false; if (r.isP) sfx.whoosh(); }
 function resolveKick(r) {
   const reach = r.model === 'bison' ? 2.9 : 2.4;
   for (const o of racers) { if (o === r || o.crashT > 0 || o.ghost > 0) continue; const ds = wrapDS(o.s - r.s), dx = (o.x - r.x) * r.kickSide;
@@ -369,7 +369,7 @@ function resolveKick(r) {
 function updateRacer(r, dt, inp) {
   const tr = track; frameAt(r.s, F); const k = F.k, mv = maxV(r), sr = steerRate(r);
   r.kickCd -= dt; r.ghost -= dt; r._catchUp = 0;
-  if (r.kickT > 0) { const prev = r.kickT; r.kickT -= dt; if (r.kickT < .3 && r.kickT > .05 && !r.kickHit) r.kickHit = resolveKick(r); }
+  if (r.kickT > 0) { r.kickT -= dt; if (r.kickT < .38 && r.kickT > .08 && !r.kickHit) r.kickHit = resolveKick(r); }
   if (r.crashT > 0) {
     r.crashT -= dt; r.cv = Math.max(0, r.cv - 22 * dt); r.v = r.cv; r.s += r.cv * dt; r.x += r.cdir * Math.min(r.cv, 8) * .35 * dt; r.x = clamp(r.x, -18, 18); r.xd = 0;
     if (r.crashT <= 0) { r.v = 0; r.x = clamp(r.x, -6, 6); r.ghost = 1.6; r.steer = 0; }
@@ -445,7 +445,13 @@ function poseRacer(r, dt, k) {
   if (r.crashT > 0) { const t = 2.6 - r.crashT; const air = Math.min(t, 1.2) / 1.2; const up = t < 1.2 ? Math.sin(air * Math.PI) * 1.6 : 0; const getUp = clamp((t - 1.8) / .6, 0, 1);
     b.rider.position.set(r.cdir * air * 1.4, up, air * 1.6); b.rider.rotation.set(t < 1.2 ? t * 6 : 0, 0, t < 1.2 ? t * 2.5 * r.cdir : (1 - getUp) * r.cdir * 1.3); }
   else { b.rider.position.set(0, 0, 0); b.rider.rotation.set(0, 0, 0); }
-  b.legs.forEach((h, n) => { const side = n === 0 ? -1 : 1; let a = 0; if (r.kickT > 0 && r.kickSide === side) { const u = 1 - r.kickT / .4; a = Math.sin(Math.min(1, u * 1.6) * Math.PI) * 1.4; } h.rotation.z = -side * a; h.rotation.x = a * .3; });
+  b.legs.forEach((h, n) => {
+    const side = n === 0 ? -1 : 1; let a = 0;
+    if (r.kickT > 0 && r.kickSide === side) { const u = 1 - r.kickT / .55; a = Math.sin(Math.min(1, u * 1.35) * Math.PI); } // 0→1→0 swing
+    // thigh swings out to the side + slightly forward; clear from chase cam
+    h.rotation.y = side * a * 1.15; h.rotation.z = -side * a * .55; h.rotation.x = -a * .35;
+    const kn = h.userData.knee; if (kn) { kn.rotation.z = -side * a * 1.05; kn.rotation.x = a * .85; kn.rotation.y = 0; }
+  });
   b.root.visible = !(r.ghost > 0 && Math.floor(r.ghost * 10) % 2 === 0);
 }
 function updateTraffic(dt) {
@@ -600,15 +606,21 @@ function tickRace(dt) {
   if (racing) updateTraffic(dt); else { traffic.forEach(c => placeObj(c.m, c.s, c.x, 0)); crossTraffic.forEach(c => placeObj(c.m, c.s, c.x, Math.PI / 2)); }
   stepParticles(dust, dt);
   const p = player(); frameAt(p.s, F);
-  const v = p.v, back = 6.5 + v * .032, hgt = 3.15 + v * .008; // mid zoom: closer than far POV, still readable road
-  const want = F.p.clone().addScaledVector(F.t, -back).addScaledVector(F.r, p.x * .85); want.y = Math.max(want.y, F.p.y) + hgt;
-  frameAt(p.s + 20 + v * .09, F2); const look = F2.p.clone().addScaledVector(F2.r, p.x * .7); look.y += 1.1;
+  const v = p.v;
+  // Phone landscape (narrow + wide aspect): much closer so cones/trucks/rivals read mid-screen. iPad/desktop keep mid zoom.
+  const phoneCam = VW() <= 900 && camera.aspect >= 1.7;
+  const back = phoneCam ? (4.0 + v * .018) : (6.4 + v * .03);
+  const hgt = phoneCam ? (2.05 + v * .004) : (3.1 + v * .008);
+  const want = F.p.clone().addScaledVector(F.t, -back).addScaledVector(F.r, p.x * (phoneCam ? .7 : .85)); want.y = Math.max(want.y, F.p.y) + hgt;
+  frameAt(p.s + (phoneCam ? 14 + v * .08 : 20 + v * .09), F2);
+  const look = F2.p.clone().addScaledVector(F2.r, p.x * (phoneCam ? .55 : .7)); look.y += phoneCam ? 1.25 : 1.1;
   if (!camInit) { camPos.copy(want); camLook.copy(look); camInit = true; }
-  camPos.lerp(want, Math.min(1, dt * 6.5)); camLook.lerp(look, Math.min(1, dt * 6));
+  camPos.lerp(want, Math.min(1, dt * (phoneCam ? 8 : 6.5))); camLook.lerp(look, Math.min(1, dt * (phoneCam ? 7 : 6)));
   camera.position.copy(camPos); if (shake > 0) { shake -= dt; camera.position.x += (Math.random() - .5) * shake * .6; camera.position.y += (Math.random() - .5) * shake * .6; }
   camera.position.y += Math.sin(raceTime * 40) * .012 * clamp(v / 60, 0, 1);
   camera.lookAt(camLook); camera.rotateZ(p.leanA * .22);
-  const fov = (camera.aspect > 1.3 ? 63 : 66) + clamp(v / 70, 0, 1) * 11; if (Math.abs(camera.fov - fov) > .1) { camera.fov = lerp(camera.fov, fov, Math.min(1, dt * 3)); camera.updateProjectionMatrix(); }
+  const fov = phoneCam ? (50 + clamp(v / 70, 0, 1) * 7) : ((camera.aspect > 1.3 ? 63 : 66) + clamp(v / 70, 0, 1) * 11);
+  if (Math.abs(camera.fov - fov) > .1) { camera.fov = lerp(camera.fov, fov, Math.min(1, dt * 3)); camera.updateProjectionMatrix(); }
   scene.userData.sky.position.copy(camera.position);
   sun.target.position.copy(p.b.root.position); sun.position.copy(p.b.root.position).addScaledVector(new THREE.Vector3(...track.def.sun).normalize(), 120);
   const hl = scene.userData.head; if (hl) { hl.position.copy(p.b.root.position).addScaledVector(F.t, -.5); hl.position.y += 1.3; hl.target.position.copy(p.b.root.position).addScaledVector(F.t, 30); }
