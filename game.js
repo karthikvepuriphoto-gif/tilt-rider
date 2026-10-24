@@ -162,8 +162,20 @@ function makeBike(o) {
   const barZ = md === 'bison' ? -.36 : -.5, barY = md === 'bison' ? wr + 1.22 : wr + .74;
   for (const sx of [-1, 1]) { const sh = new THREE.Vector3(sx * .24, seatY + .05 + .58 * Math.cos(tuck), .2 - .58 * Math.sin(tuck)); const hd = new THREE.Vector3(sx * .28, barY, barZ);
     const a = new THREE.Mesh(geo.box, jk); a.position.copy(sh).add(hd).multiplyScalar(.5); a.scale.set(.11, .11, sh.distanceTo(hd)); rider.add(a); a.lookAt(hd); part(geo.sph, mats.glove, .07, .07, .07, hd.x, hd.y, hd.z, rider); }
+  // Hinged legs: hip → thigh → knee → shin → boot (local -Y bone axis)
   const legs = [];
-  for (const sx of [-1, 1]) { const hip = new THREE.Group(); hip.position.set(sx * .17, seatY + .08, .22); rider.add(hip); part(geo.box, pants, .14, .14, .5, 0, 0, -.22, hip); const knee = new THREE.Group(); knee.position.set(0, 0, -.44); hip.add(knee); part(geo.box, pants, .13, .48, .13, 0, -.22, .05, knee, .3); part(geo.box, mats.dark, .14, .1, .24, 0, -.46, -.02, knee); hip.userData.knee = knee; legs.push(hip); }
+  for (const sx of [-1, 1]) {
+    const hip = new THREE.Group(); hip.position.set(sx * .18, seatY + .05, .16); rider.add(hip);
+    const thigh = new THREE.Group(); hip.add(thigh);
+    part(geo.box, pants, .15, .4, .16, 0, -.2, 0, thigh);
+    const knee = new THREE.Group(); knee.position.set(0, -.4, 0); thigh.add(knee);
+    const shin = new THREE.Group(); knee.add(shin);
+    part(geo.box, pants, .13, .36, .13, 0, -.18, 0, shin);
+    const boot = new THREE.Group(); boot.position.set(0, -.38, 0); shin.add(boot);
+    part(geo.box, mats.dark, .16, .11, .3, 0, -.03, .08, boot);
+    hip.userData = { thigh, knee, shin, boot, side: sx };
+    legs.push(hip);
+  }
   root.traverse(m => { if (m.isMesh) m.castShadow = true; });
   return { root, lean, rider, wf, wr: wrr, legs, torso, wheelR: wr };
 }
@@ -392,17 +404,33 @@ function crash(r, dir) {
   if (r.crashT > 0 || r.ghost > 0) return; r.crashT = 2.6; r.cdir = dir || (Math.random() < .5 ? -1 : 1); r.cv = r.v;
   if (r.isP) { sfx.crash(); banner('Whoops! Back on in a sec…', 1800); shake = .6; } else sfx.thud(Math.max(.2, 1 - Math.abs(progress(r) - progress(player())) / 60));
 }
-function doKick(r, side) { if (r.kickCd > 0 || r.crashT > 0) return; r.kickT = .55; r.kickSide = side; r.kickCd = .85; r.kickHit = false; if (r.isP) sfx.whoosh(); }
+const KICK_LEN = .42; // wind-up → snap → hold → retract
+function doKick(r, side) { if (r.kickCd > 0 || r.crashT > 0) return; r.kickT = KICK_LEN; r.kickSide = side; r.kickCd = .7; r.kickHit = false; if (r.isP) sfx.whoosh(); }
 function resolveKick(r) {
   const reach = r.model === 'bison' ? 2.9 : 2.4;
   for (const o of racers) { if (o === r || o.crashT > 0 || o.ghost > 0) continue; const ds = wrapDS(o.s - r.s), dx = (o.x - r.x) * r.kickSide;
     if (Math.abs(ds) < 2.2 && dx > .4 && dx < reach) { crash(o, r.kickSide); r.kos++; if (r.isP) { sfx.kick(); popText(o, ['BONK!', 'POW!', 'BOOP!', 'WHAM!'][Math.floor(Math.random() * 4)]); } else if (o.isP) { sfx.kick(); popText(o, 'OOF!'); } return true; } }
   return false;
 }
+function smooth01(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+/** Crisp kick phases from progress u∈[0,1]: chamber (knee bend) then snap extend. */
+function kickWeights(u) {
+  let chamber = 0, extend = 0;
+  if (u < .18) { chamber = smooth01(u / .18); }
+  else if (u < .36) { const t = smooth01((u - .18) / .18); chamber = 1 - t; extend = t; }
+  else if (u < .58) { extend = 1; }
+  else { extend = 1 - smooth01((u - .58) / .42); }
+  return { chamber, extend };
+}
 function updateRacer(r, dt, inp) {
   const tr = track; frameAt(r.s, F); const k = F.k, mv = maxV(r), sr = steerRate(r);
   r.kickCd -= dt; r.ghost -= dt; r._catchUp = 0;
-  if (r.kickT > 0) { r.kickT -= dt; if (r.kickT < .38 && r.kickT > .08 && !r.kickHit) r.kickHit = resolveKick(r); }
+  if (r.kickT > 0) {
+    r.kickT -= dt;
+    const u = 1 - Math.max(0, r.kickT) / KICK_LEN;
+    // active during snap + hold (clear extended leg)
+    if (u > .28 && u < .62 && !r.kickHit) r.kickHit = resolveKick(r);
+  }
   if (r.crashT > 0) {
     r.crashT -= dt; r.cv = Math.max(0, r.cv - 22 * dt); r.v = r.cv; r.s += r.cv * dt; r.x += r.cdir * Math.min(r.cv, 8) * .35 * dt; r.x = clamp(r.x, -18, 18); r.xd = 0; r.airY = 0; r.airVy = 0; r.airPitch = 0;
     if (r.crashT <= 0) { r.v = 0; r.x = clamp(r.x, -6, 6); r.ghost = 1.6; r.steer = 0; }
@@ -518,12 +546,38 @@ function poseRacer(r, dt, k) {
   if (r.crashT > 0) { const t = 2.6 - r.crashT; const air = Math.min(t, 1.2) / 1.2; const up = t < 1.2 ? Math.sin(air * Math.PI) * 1.6 : 0; const getUp = clamp((t - 1.8) / .6, 0, 1);
     b.rider.position.set(r.cdir * air * 1.4, up, air * 1.6); b.rider.rotation.set(t < 1.2 ? t * 6 : 0, 0, t < 1.2 ? t * 2.5 * r.cdir : (1 - getUp) * r.cdir * 1.3); }
   else { b.rider.position.set(0, 0, 0); b.rider.rotation.set(0, 0, 0); }
-  b.legs.forEach((h, n) => {
-    const side = n === 0 ? -1 : 1; let a = 0;
-    if (r.kickT > 0 && r.kickSide === side) { const u = 1 - r.kickT / .55; a = Math.sin(Math.min(1, u * 1.35) * Math.PI); } // 0→1→0 swing
-    // thigh swings out to the side + slightly forward; clear from chase cam
-    h.rotation.y = side * a * 1.15; h.rotation.z = -side * a * .55; h.rotation.x = -a * .35;
-    const kn = h.userData.knee; if (kn) { kn.rotation.z = -side * a * 1.05; kn.rotation.x = a * .85; kn.rotation.y = 0; }
+  // Riding rest: thigh back to pegs, knee bent. Kick: chamber (bend) → snap side extend.
+  const rest = { hx: 1.08, hy: 0, hz: 0, kx: -.98 };
+  const chamber = { hx: 1.4, hy: -.18, hz: .22, kx: -1.7 }; // wind-up: knee folds hard
+  const extend = { hx: -.35, hy: 1.85, hz: -1.15, kx: -.02 }; // snap: thigh UP+OUT, knee locked (reads on phone cam)
+  let kickCh = 0, kickEx = 0, kickSide = r.kickSide || 1;
+  if (r.kickT > 0) {
+    const u = 1 - Math.max(0, r.kickT) / KICK_LEN;
+    const w = kickWeights(u); kickCh = w.chamber; kickEx = w.extend;
+  }
+  if (b.torso) {
+    const tuck0 = b.torso.userData.tuck0 != null ? b.torso.userData.tuck0 : b.torso.rotation.x;
+    b.torso.userData.tuck0 = tuck0;
+    b.torso.rotation.x = tuck0;
+    b.torso.rotation.z = kickSide * (kickCh * .1 + kickEx * .28); // lean into kick
+    b.torso.rotation.y = kickSide * kickEx * .12;
+  }
+  b.legs.forEach((h) => {
+    const side = h.userData.side || 1;
+    const kn = h.userData.knee;
+    let hx = rest.hx, hy = rest.hy, hz = rest.hz, kx = rest.kx;
+    if (r.kickT > 0 && r.kickSide === side) {
+      hx = rest.hx + (chamber.hx - rest.hx) * kickCh + (extend.hx - rest.hx) * kickEx;
+      hy = rest.hy + (chamber.hy - rest.hy) * kickCh + (extend.hy - rest.hy) * kickEx;
+      hz = rest.hz + (chamber.hz - rest.hz) * kickCh + (extend.hz - rest.hz) * kickEx;
+      kx = rest.kx + (chamber.kx - rest.kx) * kickCh + (extend.kx - rest.kx) * kickEx;
+    }
+    // hip: X = thigh fore/aft, Y = yaw out for side kick silhouette, Z = abduct
+    h.rotation.set(hx, side * hy, -side * hz);
+    const baseX = side * .18, baseY = h.position.y; // restore lateral flare each frame
+    if (r.kickT > 0 && r.kickSide === side) h.position.x = baseX + side * (.05 + kickEx * .22);
+    else h.position.x = baseX;
+    if (kn) kn.rotation.set(kx, 0, 0);
   });
   b.root.visible = !(r.ghost > 0 && Math.floor(r.ghost * 10) % 2 === 0);
 }
@@ -810,4 +864,6 @@ $('rAgain').onclick = () => startRace(curTrack); $('rMenu').onclick = () => goMe
 
 resize(); refreshGarageBike(); applySound(); requestAnimationFrame(loop);
 window.TR = { camInfo: () => ({ w: VW(), h: VH(), short: Math.min(VW(), VH()), phone: Math.min(VW(), VH()) <= 500, fov: camera.fov }), obstacles: () => obstacles, crossTraffic: () => crossTraffic, ramps: () => ramps, bumps: () => bumps, snapCam: () => { camInit = false; }, get S() { return S; }, get rot() { return ROT; }, get paused() { return paused; }, get softPaused() { return softPaused; }, get RW() { return RW; }, setRot, get state() { return state; }, startRace, tilt, racers: () => racers, player, track: () => track, finish: () => { const p = player(); p.lap = track.def.laps - 1; p.s = track.L - 2; p.v = 40; }, crash: r => crash(r || player()), q: () => qName, goMenu, steer: () => readInput(0.016).steer, fastStart: () => { countT = 0.01; }, riderRect: () => { const bx = new THREE.Box3().setFromObject(player().b.root); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < 8; i++) { const v = new THREE.Vector3(i & 1 ? bx.max.x : bx.min.x, i & 2 ? bx.max.y : bx.min.y, i & 4 ? bx.max.z : bx.min.z).project(camera); const X = (v.x + 1) / 2 * VW(), Y = (1 - v.y) / 2 * VH(); x0 = Math.min(x0, X); x1 = Math.max(x1, X); y0 = Math.min(y0, Y); y1 = Math.max(y1, Y); } return { x0, y0, x1, y1 }; }, forceCross: i => { const c = crossTraffic[i|0]; if (!c) return null; c.mode = 'approach'; c.phase = 0; c.x = c.side * (RW + 22); c.dir = -c.side; c.hitT = 0; c.m.visible = true; placeObj(c.m, c.s, c.x, Math.PI / 2); return { s: c.s, x: c.x, side: c.side, mode: c.mode }; },
-  forceJump: () => { const p = player(); const rp = ramps[0]; if (!rp) { p.airY = 2; p.airVy = 10; return null; } p.s = rp.s; p.x = rp.x; p.v = 42; p.airY = rp.h; p.airVy = 9; p.jumpCd = 0; return { s: rp.s, h: rp.h }; } };
+  forceJump: () => { const p = player(); const rp = ramps[0]; if (!rp) { p.airY = 2; p.airVy = 10; return null; } p.s = rp.s; p.x = rp.x; p.v = 42; p.airY = rp.h; p.airVy = 9; p.jumpCd = 0; return { s: rp.s, h: rp.h }; },
+  forceKick: (side = 1) => { const p = player(); p.kickCd = 0; p.crashT = 0; p.airY = 0; p.airVy = 0; doKick(p, side > 0 ? 1 : -1); // freeze at full extend for screenshots
+    p.kickT = KICK_LEN * (1 - .48); p.kickHit = true; return { kickT: p.kickT, side: p.kickSide, len: KICK_LEN }; } };
