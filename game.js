@@ -607,19 +607,24 @@ function tickRace(dt) {
   stepParticles(dust, dt);
   const p = player(); frameAt(p.s, F);
   const v = p.v;
-  // Phone landscape (narrow + wide aspect): much closer so cones/trucks/rivals read mid-screen. iPad/desktop keep mid zoom.
-  const phoneCam = VW() <= 900 && camera.aspect >= 1.7;
-  const back = phoneCam ? (4.0 + v * .018) : (6.4 + v * .03);
-  const hgt = phoneCam ? (2.05 + v * .004) : (3.1 + v * .008);
-  const want = F.p.clone().addScaledVector(F.t, -back).addScaledVector(F.r, p.x * (phoneCam ? .7 : .85)); want.y = Math.max(want.y, F.p.y) + hgt;
-  frameAt(p.s + (phoneCam ? 14 + v * .08 : 20 + v * .09), F2);
-  const look = F2.p.clone().addScaledVector(F2.r, p.x * (phoneCam ? .55 : .7)); look.y += phoneCam ? 1.25 : 1.1;
+  // Phone = short side ≤500 (covers iPhone 17 Pro ~874×402). iPad landscape short side is ~744–820 → mid zoom.
+  const shortSide = Math.min(VW(), VH());
+  const phoneCam = shortSide <= 500;
+  if (window.__trCamDbg !== shortSide + (phoneCam ? 'p' : 'm')) {
+    window.__trCamDbg = shortSide + (phoneCam ? 'p' : 'm');
+    console.log('[TiltRider cam]', VW() + 'x' + VH(), 'short=' + shortSide, phoneCam ? 'PHONE close' : 'mid');
+  }
+  const back = phoneCam ? (3.45 + v * .014) : (6.4 + v * .03);
+  const hgt = phoneCam ? (1.85 + v * .0035) : (3.1 + v * .008);
+  const want = F.p.clone().addScaledVector(F.t, -back).addScaledVector(F.r, p.x * (phoneCam ? .65 : .85)); want.y = Math.max(want.y, F.p.y) + hgt;
+  frameAt(p.s + (phoneCam ? 12 + v * .07 : 20 + v * .09), F2);
+  const look = F2.p.clone().addScaledVector(F2.r, p.x * (phoneCam ? .5 : .7)); look.y += phoneCam ? 1.3 : 1.1;
   if (!camInit) { camPos.copy(want); camLook.copy(look); camInit = true; }
-  camPos.lerp(want, Math.min(1, dt * (phoneCam ? 8 : 6.5))); camLook.lerp(look, Math.min(1, dt * (phoneCam ? 7 : 6)));
+  camPos.lerp(want, Math.min(1, dt * (phoneCam ? 9 : 6.5))); camLook.lerp(look, Math.min(1, dt * (phoneCam ? 8 : 6)));
   camera.position.copy(camPos); if (shake > 0) { shake -= dt; camera.position.x += (Math.random() - .5) * shake * .6; camera.position.y += (Math.random() - .5) * shake * .6; }
   camera.position.y += Math.sin(raceTime * 40) * .012 * clamp(v / 60, 0, 1);
   camera.lookAt(camLook); camera.rotateZ(p.leanA * .22);
-  const fov = phoneCam ? (50 + clamp(v / 70, 0, 1) * 7) : ((camera.aspect > 1.3 ? 63 : 66) + clamp(v / 70, 0, 1) * 11);
+  const fov = phoneCam ? (46 + clamp(v / 70, 0, 1) * 6) : ((camera.aspect > 1.3 ? 63 : 66) + clamp(v / 70, 0, 1) * 11);
   if (Math.abs(camera.fov - fov) > .1) { camera.fov = lerp(camera.fov, fov, Math.min(1, dt * 3)); camera.updateProjectionMatrix(); }
   scene.userData.sky.position.copy(camera.position);
   sun.target.position.copy(p.b.root.position); sun.position.copy(p.b.root.position).addScaledVector(new THREE.Vector3(...track.def.sun).normalize(), 120);
@@ -719,4 +724,4 @@ function showResults() {
 $('rAgain').onclick = () => startRace(curTrack); $('rMenu').onclick = () => goMenu('sTitle'); $('rNext').onclick = () => startRace(curTrack + 1);
 
 resize(); refreshGarageBike(); applySound(); requestAnimationFrame(loop);
-window.TR = { obstacles: () => obstacles, crossTraffic: () => crossTraffic, snapCam: () => { camInit = false; }, get S() { return S; }, get rot() { return ROT; }, get paused() { return paused; }, get softPaused() { return softPaused; }, get RW() { return RW; }, setRot, get state() { return state; }, startRace, tilt, racers: () => racers, player, track: () => track, finish: () => { const p = player(); p.lap = track.def.laps - 1; p.s = track.L - 2; p.v = 40; }, crash: r => crash(r || player()), q: () => qName, goMenu, steer: () => readInput(0.016).steer, fastStart: () => { countT = 0.01; }, riderRect: () => { const bx = new THREE.Box3().setFromObject(player().b.root); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < 8; i++) { const v = new THREE.Vector3(i & 1 ? bx.max.x : bx.min.x, i & 2 ? bx.max.y : bx.min.y, i & 4 ? bx.max.z : bx.min.z).project(camera); const X = (v.x + 1) / 2 * VW(), Y = (1 - v.y) / 2 * VH(); x0 = Math.min(x0, X); x1 = Math.max(x1, X); y0 = Math.min(y0, Y); y1 = Math.max(y1, Y); } return { x0, y0, x1, y1 }; }, forceCross: i => { const c = crossTraffic[i|0]; if (!c) return null; c.crossing = true; c.phase = 0; c.x = c.side * (RW + 4); c.dir = -c.side; c.hitT = 0; c.m.visible = true; placeObj(c.m, c.s, c.x, Math.PI / 2); return { s: c.s, x: c.x, side: c.side }; } };
+window.TR = { camInfo: () => ({ w: VW(), h: VH(), short: Math.min(VW(), VH()), phone: Math.min(VW(), VH()) <= 500, fov: camera.fov }), obstacles: () => obstacles, crossTraffic: () => crossTraffic, snapCam: () => { camInit = false; }, get S() { return S; }, get rot() { return ROT; }, get paused() { return paused; }, get softPaused() { return softPaused; }, get RW() { return RW; }, setRot, get state() { return state; }, startRace, tilt, racers: () => racers, player, track: () => track, finish: () => { const p = player(); p.lap = track.def.laps - 1; p.s = track.L - 2; p.v = 40; }, crash: r => crash(r || player()), q: () => qName, goMenu, steer: () => readInput(0.016).steer, fastStart: () => { countT = 0.01; }, riderRect: () => { const bx = new THREE.Box3().setFromObject(player().b.root); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < 8; i++) { const v = new THREE.Vector3(i & 1 ? bx.max.x : bx.min.x, i & 2 ? bx.max.y : bx.min.y, i & 4 ? bx.max.z : bx.min.z).project(camera); const X = (v.x + 1) / 2 * VW(), Y = (1 - v.y) / 2 * VH(); x0 = Math.min(x0, X); x1 = Math.max(x1, X); y0 = Math.min(y0, Y); y1 = Math.max(y1, Y); } return { x0, y0, x1, y1 }; }, forceCross: i => { const c = crossTraffic[i|0]; if (!c) return null; c.crossing = true; c.phase = 0; c.x = c.side * (RW + 4); c.dir = -c.side; c.hitT = 0; c.m.visible = true; placeObj(c.m, c.s, c.x, Math.PI / 2); return { s: c.s, x: c.x, side: c.side }; } };
