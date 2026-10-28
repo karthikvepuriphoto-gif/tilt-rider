@@ -6,17 +6,94 @@ function rngf(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; le
 const IS_TOUCH = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 
 /* ---------------- data ---------------- */
+// Prices are a savings ladder. Viper stays free. Nova is the dream bike.
+// Stats are 0–1+ before upgrades. Fully upgraded stats cap at STAT_CAP.
+const STAT_CAP = 1.4;
 const BIKES = [
   { id: 'viper', name: 'Viper', type: 'Sport', price: 0, spd: .78, acc: .74, hnd: .72, desc: 'Nimble starter sport bike' },
+  { id: 'pebble', name: 'Pebble', type: 'Mini', price: 900, spd: .6, acc: .9, hnd: .98, desc: 'Tiny pocket bike. Super easy to flick' },
   { id: 'hopper', name: 'Hopper', type: 'Dirt', price: 1500, spd: .66, acc: .92, hnd: .9, desc: 'Grippy and great off the road' },
   { id: 'bison', name: 'Bison', type: 'Cruiser', price: 2500, spd: .86, acc: .66, hnd: .56, desc: 'Heavy, long kick reach' },
+  { id: 'scoot', name: 'Scoot', type: 'Scooter', price: 3200, spd: .72, acc: .8, hnd: .86, desc: 'Upright city scooter with a big shield' },
   { id: 'comet', name: 'Comet', type: 'Café racer', price: 4000, spd: .9, acc: .82, hnd: .76, desc: 'Classic style, all-rounder' },
-  { id: 'bolt', name: 'Bolt', type: 'Superbike', price: 7000, spd: 1, acc: .92, hnd: .74, desc: 'The fastest thing on two wheels' },
+  { id: 'spark', name: 'Spark', type: 'Electric', price: 5500, spd: .86, acc: 1, hnd: .82, desc: 'Quiet zoom. Quickest off the line' },
+  { id: 'bolt', name: 'Bolt', type: 'Superbike', price: 7000, spd: 1, acc: .92, hnd: .74, desc: 'A superbike with serious speed' },
+  { id: 'glide', name: 'Glide', type: 'Tourer', price: 10500, spd: .93, acc: .7, hnd: .64, desc: 'Big cases and a tall screen. Comfy, not the fastest' },
+  { id: 'falcon', name: 'Falcon', type: 'Aero', price: 16000, spd: 1.08, acc: .8, hnd: .66, desc: 'Long and slippery. A big step up in top speed' },
+  { id: 'nova', name: 'Nova', type: 'Legend', price: 24000, spd: 1.14, acc: 1.05, hnd: .96, desc: 'The garage dream. Fast, grippy, worth saving for' },
 ];
-const PAINTS = ['#e63946', '#ff8c1a', '#ffd60a', '#2ec4b6', '#3a86ff', '#8338ec', '#ff4fa3', '#1b1b1f', '#f1f1f1', '#3fbf3f'];
-const DECALS = [{ id: 'none', name: 'Plain' }, { id: 'stripes', name: 'Racing stripes' }, { id: 'flames', name: 'Flames' }, { id: 'stars', name: 'Stars' }, { id: 'checker', name: 'Checkers' }, { id: 'bolt', name: 'Lightning' }, { id: 'num', name: 'Race number' }];
-const GEAR = ['#ffffff', '#111111', '#e63946', '#ffd60a', '#3a86ff', '#2ec4b6', '#ff4fa3', '#8338ec', '#ff8c1a', '#3fbf3f'];
+const PAINTS = [
+  { id: '#e63946', name: 'Cherry', price: 0 },
+  { id: '#ff8c1a', name: 'Orange pop', price: 250 },
+  { id: '#ffd60a', name: 'Sunny', price: 250 },
+  { id: '#2ec4b6', name: 'Lagoon', price: 300 },
+  { id: '#3a86ff', name: 'Bluebird', price: 300 },
+  { id: '#8338ec', name: 'Grape', price: 400 },
+  { id: '#ff4fa3', name: 'Bubblegum', price: 400 },
+  { id: '#1b1b1f', name: 'Midnight', price: 350 },
+  { id: '#f1f1f1', name: 'Cloud', price: 250 },
+  { id: '#3fbf3f', name: 'Lime', price: 300 },
+  { id: '#ff2bd6', name: 'Neon pink', price: 700, pack: 'neon' },
+  { id: '#c6ff3a', name: 'Neon lime', price: 700, pack: 'neon' },
+  { id: '#7af6ff', name: 'Ice glow', price: 700, pack: 'neon' },
+  { id: '#ffe14a', name: 'Gold glow', price: 700, pack: 'neon' },
+  { id: '#ff5a7a', name: 'Watermelon', price: 750, pack: 'candy' },
+  { id: '#ffb3c7', name: 'Cotton candy', price: 750, pack: 'candy' },
+  { id: '#7d5cff', name: 'Jelly purple', price: 750, pack: 'candy' },
+  { id: '#3dffe0', name: 'Mint fizz', price: 750, pack: 'candy' },
+];
+const PAINT_PACKS = [
+  { id: 'neon', name: 'Neon paint pack', price: 1800, desc: 'Four glow colors, cheaper together', paints: ['#ff2bd6', '#c6ff3a', '#7af6ff', '#ffe14a'] },
+  { id: 'candy', name: 'Candy paint pack', price: 2200, desc: 'Sweet-shop colors, cheaper together', paints: ['#ff5a7a', '#ffb3c7', '#7d5cff', '#3dffe0'] },
+];
+const DECALS = [
+  { id: 'stripes', name: 'Racing stripes', price: 0 },
+  { id: 'none', name: 'Plain', price: 0 },
+  { id: 'flames', name: 'Flames', price: 450 },
+  { id: 'stars', name: 'Stars', price: 450 },
+  { id: 'checker', name: 'Checkers', price: 500 },
+  { id: 'bolt', name: 'Lightning', price: 650 },
+  { id: 'num', name: 'Race number', price: 400 },
+  { id: 'hearts', name: 'Hearts', price: 900 },
+  { id: 'waves', name: 'Ocean waves', price: 900 },
+  { id: 'shoot', name: 'Shooting stars', price: 1200 },
+  { id: 'crowns', name: 'Tiny crowns', price: 1500 },
+];
+const HELMETS = [
+  { id: '#ffffff', name: 'Cloud white', price: 0 },
+  { id: '#111111', name: 'Ink black', price: 220 },
+  { id: '#e63946', name: 'Cherry', price: 280 },
+  { id: '#ffd60a', name: 'Sunny', price: 280 },
+  { id: '#3a86ff', name: 'Bluebird', price: 320 },
+  { id: '#2ec4b6', name: 'Lagoon', price: 320 },
+  { id: '#ff4fa3', name: 'Bubblegum', price: 380 },
+  { id: '#8338ec', name: 'Grape', price: 380 },
+  { id: '#ff8c1a', name: 'Tiger', price: 320 },
+  { id: '#3fbf3f', name: 'Frog', price: 320 },
+];
+const JACKETS = [
+  { id: '#111111', name: 'Classic black', price: 0 },
+  { id: '#ffffff', name: 'Snow', price: 220 },
+  { id: '#e63946', name: 'Cherry', price: 280 },
+  { id: '#ffd60a', name: 'Sunny', price: 280 },
+  { id: '#3a86ff', name: 'Bluebird', price: 320 },
+  { id: '#2ec4b6', name: 'Lagoon', price: 320 },
+  { id: '#ff4fa3', name: 'Bubblegum', price: 380 },
+  { id: '#8338ec', name: 'Grape', price: 380 },
+  { id: '#ff8c1a', name: 'Tiger', price: 320 },
+  { id: '#3fbf3f', name: 'Frog', price: 320 },
+];
+const PITS = [
+  { id: 'classic', name: 'Classic pit', price: 0, desc: 'The home garage', floor: 0x2a2f5a, ring: 0xff8a3c, bg: 0x14183a },
+  { id: 'sunset', name: 'Sunset pit', price: 1600, desc: 'Warm orange evening lights', floor: 0x5a3028, ring: 0xffb347, bg: 0x2a1418 },
+  { id: 'ocean', name: 'Ocean pit', price: 1600, desc: 'Cool blue, like the coast', floor: 0x12344a, ring: 0x3ad0ff, bg: 0x0c1c30 },
+  { id: 'candy', name: 'Candy pit', price: 2800, desc: 'Pink lights and a sweet floor', floor: 0x4a1844, ring: 0xff4fa3, bg: 0x241028 },
+  { id: 'champion', name: 'Champion pit', price: 5000, desc: 'A gold ring for a full trophy shelf', floor: 0x3a3218, ring: 0xffd25e, bg: 0x1a160c },
+];
+const NITRO_PRICE = 800, NITRO_PACK = 2000, NITRO_MAX = 5;
 const UPG_COST = [400, 700, 1100, 1600, 2300];
+const BASE_PAINTS = PAINTS.filter(p => !p.pack);
+const RIVAL_BIKES = BIKES.filter(b => b.price <= 7000);
 const RIVALS = ['Dusty', 'Zippy', 'Turbo Tess', 'Max Revs', 'Lola Loop', 'Sprocket', 'Nitro Nik', 'Ace', 'Vroom Vic', 'Pip'];
 const TRACKS = [
   { id: 'coast', name: 'Sunrise Coast', desc: 'Seaside highway, palm trees and a few beach cars.', theme: 'coast', rw: 10.6, R: 430, seed: 11, rad: [[2, .12, 0], [3, .08, 1], [5, .045, 2]], hills: [[2, 6, 0], [5, 2.5, 1]], laps: 2, traffic: 6, obst: 6, cross: 5, ramps: 3, bumps: 2, diff: 0,
@@ -49,13 +126,54 @@ const TRACKS = [
 
 /* ---------------- save ---------------- */
 const SKEY = 'tiltrider_save_v1';
-const DEF = { cash: 600, owned: ['viper'], bike: 'viper', paint: '#e63946', decal: 'stripes', helmet: '#ffffff', jacket: '#111111', upg: {}, unlocked: ['coast'], best: {}, wins: 0,
-  set: { steer: IS_TOUCH ? 'tilt' : 'touch', sens: 3, inv: false, auto: true, diff: 'easy', sv: 2, qual: 'auto', music: true, sound: true, cal: 0 } };
-let S;
-try { S = Object.assign(structuredClone(DEF), JSON.parse(localStorage.getItem(SKEY) || '{}')); S.set = Object.assign(structuredClone(DEF.set), S.set || {}); if (S.set.sv !== 2) { S.set.sv = 2; S.set.auto = true; S.set.sens = 3; S.set.diff = 'easy'; } } catch (e) { S = structuredClone(DEF); }
+const FREE = { paint: '#e63946', decal: 'stripes', helmet: '#ffffff', jacket: '#111111', pit: 'classic' };
+const DEF = {
+  cash: 600, owned: ['viper'], bike: 'viper',
+  paint: FREE.paint, decal: FREE.decal, helmet: FREE.helmet, jacket: FREE.jacket,
+  ownedPaints: [FREE.paint], ownedDecals: [FREE.decal, 'none'],
+  ownedHelmets: [FREE.helmet], ownedJackets: [FREE.jacket],
+  ownedPits: [FREE.pit], pit: FREE.pit, nitros: 0, nitroArm: false,
+  upg: {}, unlocked: ['coast'], best: {}, wins: 0,
+  set: { steer: IS_TOUCH ? 'tilt' : 'touch', sens: 3, inv: false, auto: true, diff: 'easy', sv: 2, qual: 'auto', music: true, sound: true, cal: 0 },
+};
+function withIds(list, ids) {
+  const a = [];
+  const add = (id) => { if (typeof id === 'string' && id && !a.includes(id)) a.push(id); };
+  if (Array.isArray(list)) list.forEach(add);
+  ids.forEach(add);
+  return a;
+}
+function loadSave() {
+  let raw = {};
+  try { raw = JSON.parse(localStorage.getItem(SKEY) || '{}') || {}; } catch (e) { raw = {}; }
+  if (!raw || typeof raw !== 'object') raw = {};
+  const S = Object.assign(structuredClone(DEF), raw);
+  S.set = Object.assign(structuredClone(DEF.set), raw.set || {});
+  if (S.set.sv !== 2) { S.set.sv = 2; S.set.auto = true; S.set.sens = 3; S.set.diff = 'easy'; }
+  if (!Array.isArray(S.owned)) S.owned = ['viper'];
+  S.owned = S.owned.filter(id => BIKES.some(b => b.id === id));
+  if (!S.owned.includes('viper')) S.owned.unshift('viper');
+  if (!BIKES.some(b => b.id === S.bike)) S.bike = 'viper';
+  if (!PAINTS.some(p => p.id === S.paint)) S.paint = FREE.paint;
+  if (!DECALS.some(d => d.id === S.decal)) S.decal = FREE.decal;
+  if (!HELMETS.some(h => h.id === S.helmet)) S.helmet = FREE.helmet;
+  if (!JACKETS.some(j => j.id === S.jacket)) S.jacket = FREE.jacket;
+  if (!PITS.some(p => p.id === S.pit)) S.pit = FREE.pit;
+  // Older saves had every color for free. Keep the look they had on, plus the free starters.
+  S.ownedPaints = withIds(raw.ownedPaints, [FREE.paint, S.paint]).filter(id => PAINTS.some(p => p.id === id));
+  S.ownedDecals = withIds(raw.ownedDecals, [FREE.decal, 'none', S.decal]).filter(id => DECALS.some(d => d.id === id));
+  S.ownedHelmets = withIds(raw.ownedHelmets, [FREE.helmet, S.helmet]).filter(id => HELMETS.some(h => h.id === id));
+  S.ownedJackets = withIds(raw.ownedJackets, [FREE.jacket, S.jacket]).filter(id => JACKETS.some(j => j.id === id));
+  S.ownedPits = withIds(raw.ownedPits, [FREE.pit, S.pit]).filter(id => PITS.some(p => p.id === id));
+  S.nitros = Math.max(0, Math.min(NITRO_MAX, Math.floor(Number(S.nitros) || 0)));
+  S.nitroArm = !!S.nitroArm && S.nitros > 0;
+  if (!S.upg || typeof S.upg !== 'object') S.upg = {};
+  return S;
+}
+let S = loadSave();
 const save = () => { try { localStorage.setItem(SKEY, JSON.stringify(S)); } catch (e) { } };
 const upgOf = id => (S.upg[id] = S.upg[id] || { spd: 0, acc: 0, hnd: 0 });
-function bikeStats(id) { const b = BIKES.find(x => x.id === id), u = upgOf(id); return { spd: Math.min(1.15, b.spd + u.spd * .045), acc: Math.min(1.15, b.acc + u.acc * .05), hnd: Math.min(1.15, b.hnd + u.hnd * .05) }; }
+function bikeStats(id) { const b = BIKES.find(x => x.id === id) || BIKES[0], u = upgOf(id); return { spd: Math.min(STAT_CAP, b.spd + u.spd * .045), acc: Math.min(STAT_CAP, b.acc + u.acc * .05), hnd: Math.min(STAT_CAP, b.hnd + u.hnd * .05) }; }
 
 /* ---------------- renderer ---------------- */
 const canvas = $('gl');
@@ -107,7 +225,7 @@ function decalTex(paint, decal) {
   return ctex(256, 128, (g, w, h) => {
     g.fillStyle = paint; g.fillRect(0, 0, w, h);
     const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(255,255,255,.25)'); gr.addColorStop(.5, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(0,0,0,.25)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
-    const lt = paint === '#f1f1f1' || paint === '#ffd60a' ? '#1b1b1f' : '#ffffff';
+    const lt = decalInk(paint);
     g.fillStyle = lt; g.strokeStyle = lt;
     if (decal === 'stripes') { g.fillRect(w * .38, 0, w * .08, h); g.fillRect(w * .54, 0, w * .08, h); }
     if (decal === 'flames') { const c = ['#ffd60a', '#ff8c1a', '#e63946']; for (let k = 0; k < 3; k++) { g.fillStyle = c[k]; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w * .85; x += 26) { g.lineTo(x + 13, h * (.15 + k * .17) + Math.sin(x) * 8); g.lineTo(x + 26, h * (.55 + k * .12)); } g.lineTo(w * .85, h); g.fill(); } }
@@ -115,29 +233,65 @@ function decalTex(paint, decal) {
     if (decal === 'checker') { for (let x = 0; x < w; x += 16) for (let y = 0; y < h; y += 16) if (((x + y) / 16) % 2 === 0 && x > w * .55) g.fillRect(x, y, 16, 16); }
     if (decal === 'bolt') { g.fillStyle = '#ffd60a'; g.beginPath(); g.moveTo(w * .2, h * .1); g.lineTo(w * .55, h * .1); g.lineTo(w * .45, h * .42); g.lineTo(w * .8, h * .42); g.lineTo(w * .3, h * .95); g.lineTo(w * .42, h * .55); g.lineTo(w * .12, h * .55); g.fill(); }
     if (decal === 'num') { g.beginPath(); g.arc(w / 2, h / 2, h * .38, 0, 7); g.fillStyle = '#fff'; g.fill(); g.fillStyle = '#111'; g.font = 'bold 64px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('7', w / 2, h / 2 + 3); }
+    if (decal === 'hearts') { const heart = (x, y, s) => { g.beginPath(); g.moveTo(x, y + s * .3); g.bezierCurveTo(x, y, x - s, y, x - s, y + s * .35); g.bezierCurveTo(x - s, y + s * .75, x, y + s, x, y + s * 1.25); g.bezierCurveTo(x, y + s, x + s, y + s * .75, x + s, y + s * .35); g.bezierCurveTo(x + s, y, x, y, x, y + s * .3); g.fill(); }; for (let i = 0; i < 6; i++) heart(40 + (i % 3) * 78, 18 + Math.floor(i / 3) * 52, 16); }
+    if (decal === 'waves') { g.lineWidth = 6; for (let row = 0; row < 4; row++) { g.beginPath(); for (let x = 0; x <= w; x += 8) { const y = 22 + row * 28 + Math.sin(x * .08 + row) * 8; x ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); } }
+    if (decal === 'shoot') { for (let i = 0; i < 5; i++) { const x = 36 + i * 46, y = 28 + (i % 2) * 48; g.lineWidth = 4; g.beginPath(); g.moveTo(x - 22, y + 14); g.lineTo(x, y); g.stroke(); g.beginPath(); g.arc(x + 2, y - 2, 6, 0, 7); g.fill(); } }
+    if (decal === 'crowns') { const crown = (x, y, s) => { g.beginPath(); g.moveTo(x - s, y + s * .7); g.lineTo(x - s, y); g.lineTo(x - s * .45, y + s * .4); g.lineTo(x, y - s * .2); g.lineTo(x + s * .45, y + s * .4); g.lineTo(x + s, y); g.lineTo(x + s, y + s * .7); g.closePath(); g.fill(); }; for (let i = 0; i < 5; i++) crown(40 + i * 46, 28 + (i % 2) * 40, 16); }
   });
+}
+function decalInk(paint) {
+  const n = parseInt(String(paint).replace('#', ''), 16);
+  if (!Number.isFinite(n)) return '#ffffff';
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return (r * 299 + g * 587 + b * 114) / 1000 > 165 ? '#1b1b1f' : '#ffffff';
 }
 const dotTex = ctex(64, 64, (g) => { const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(.5, 'rgba(255,255,255,.5)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); });
 const windowTex = ctex(128, 256, (g, w, h) => { g.fillStyle = '#15151f'; g.fillRect(0, 0, w, h); for (let y = 6; y < h; y += 16) for (let x = 6; x < w; x += 14) { const r = Math.random(); g.fillStyle = r < .45 ? '#ffd88a' : r < .55 ? '#8fd8ff' : r < .6 ? '#ff8ad8' : '#22222e'; g.fillRect(x, y, 8, 10); } });
 windowTex.wrapS = windowTex.wrapT = THREE.RepeatWrapping;
 
 /* ---------------- bike builder ---------------- */
-const geo = { box: new THREE.BoxGeometry(1, 1, 1), cyl: new THREE.CylinderGeometry(1, 1, 1, 14), sph: new THREE.SphereGeometry(1, 16, 12), tor: new THREE.TorusGeometry(1, .32, 10, 22) };
+const geo = { box: new THREE.BoxGeometry(1, 1, 1), cyl: new THREE.CylinderGeometry(1, 1, 1, 14), sph: new THREE.SphereGeometry(1, 16, 12), tor: new THREE.TorusGeometry(1, .32, 10, 22), cone: new THREE.ConeGeometry(1, 1, 14) };
 function M(color, shin = 30) { return new THREE.MeshPhongMaterial({ color, shininess: shin }); }
-const mats = { tyre: M(0x1a1a1a, 5), chrome: M(0xd8dde4, 120), dark: M(0x2a2a30, 20), seat: M(0x151515, 10), visor: M(0x10141c, 150), glove: M(0x222222, 5), light: new THREE.MeshBasicMaterial({ color: 0xfff6cc }), tail: new THREE.MeshBasicMaterial({ color: 0xff2020 }) };
+const mats = { tyre: M(0x1a1a1a, 5), chrome: M(0xd8dde4, 120), dark: M(0x2a2a30, 20), seat: M(0x151515, 10), visor: M(0x10141c, 150), glove: M(0x222222, 5), light: new THREE.MeshBasicMaterial({ color: 0xfff6cc }), tail: new THREE.MeshBasicMaterial({ color: 0xff2020 }), glow: new THREE.MeshBasicMaterial({ color: 0x7af6ff }), gold: M(0xffd56a, 140) };
+function glassMat() { return new THREE.MeshPhongMaterial({ color: 0x9fd8ff, transparent: true, opacity: .5, shininess: 150 }); }
 function part(g, mat, sx, sy, sz, x, y, z, parent, rx = 0) { const m = new THREE.Mesh(g, mat); m.scale.set(sx, sy, sz); m.position.set(x, y, z); m.rotation.x = rx; m.castShadow = true; parent.add(m); return m; }
 function makeBike(o) {
   const root = new THREE.Group(), lean = new THREE.Group(); root.add(lean);
   const body = new THREE.MeshPhongMaterial({ map: decalTex(o.paint, o.decal), shininess: 90, specular: 0x666666 });
   const paint = M(o.paint, 90);
   const md = o.model;
-  const wr = md === 'hopper' ? .36 : md === 'bison' ? .34 : .32, wb = md === 'bison' ? 1.65 : md === 'hopper' ? 1.4 : 1.45;
-  const wheel = (z) => { const w = new THREE.Group(); w.position.set(0, wr, z); const t = new THREE.Mesh(geo.tor, mats.tyre); t.scale.set(wr * .78, wr * .78, md === 'hopper' ? wr * 1.3 : wr); t.rotation.y = Math.PI / 2; w.add(t); const h = part(geo.cyl, mats.chrome, wr * .5, .12, wr * .5, 0, 0, 0, w); h.rotation.z = Math.PI / 2; const sp = part(geo.box, mats.dark, .04, wr * 1.4, .06, 0, 0, 0, w); const sp2 = sp.clone(); sp2.rotation.x = Math.PI / 2; w.add(sp2); lean.add(w); return w; };
+  const shape = {
+    pebble: { wr: .22, wb: 1.08, wide: true },
+    scoot: { wr: .26, wb: 1.38 },
+    spark: { wr: .3, wb: 1.52, disc: true },
+    glide: { wr: .36, wb: 1.8 },
+    falcon: { wr: .28, wb: 1.92, disc: true },
+    nova: { wr: .33, wb: 1.58, disc: true },
+  }[md] || {};
+  const wr = shape.wr || (md === 'hopper' ? .36 : md === 'bison' ? .34 : .32);
+  const wb = shape.wb || (md === 'bison' ? 1.65 : md === 'hopper' ? 1.4 : 1.45);
+  const classic = !shape.wr;
+  const wheel = (z) => {
+    const w = new THREE.Group(); w.position.set(0, wr, z);
+    const t = new THREE.Mesh(geo.tor, mats.tyre); t.scale.set(wr * .78, wr * .78, (shape.wide || md === 'hopper') ? wr * 1.3 : wr); t.rotation.y = Math.PI / 2; w.add(t);
+    if (shape.disc) {
+      const d = part(geo.cyl, mats.dark, wr * .62, .07, wr * .62, 0, 0, 0, w); d.rotation.z = Math.PI / 2;
+      const hub = part(geo.cyl, md === 'nova' ? mats.gold : paint, wr * .28, .09, wr * .28, 0, 0, 0, w); hub.rotation.z = Math.PI / 2;
+    } else {
+      const h = part(geo.cyl, mats.chrome, wr * .5, .12, wr * .5, 0, 0, 0, w); h.rotation.z = Math.PI / 2;
+      const sp = part(geo.box, mats.dark, .04, wr * 1.4, .06, 0, 0, 0, w); const sp2 = sp.clone(); sp2.rotation.x = Math.PI / 2; w.add(sp2);
+    }
+    lean.add(w); return w;
+  };
   const wf = wheel(-wb / 2), wrr = wheel(wb / 2);
-  part(geo.box, mats.dark, .3, .32, .55, 0, wr + .2, .05, lean);
-  part(geo.cyl, mats.chrome, .06, .5, .06, .12, wr + .12, .45, lean, 1.3);
-  part(geo.box, mats.chrome, .05, .05, wb * .55, 0, wr + .05, wb * .22, lean);
-  const fk = part(geo.box, mats.chrome, .06, .75, .06, .12, wr + .35, -wb / 2 + .1, lean, -.35); const fk2 = fk.clone(); fk2.position.x = -.12; lean.add(fk2);
+  if (classic) {
+    part(geo.box, mats.dark, .3, .32, .55, 0, wr + .2, .05, lean);
+    part(geo.cyl, mats.chrome, .06, .5, .06, .12, wr + .12, .45, lean, 1.3);
+    part(geo.box, mats.chrome, .05, .05, wb * .55, 0, wr + .05, wb * .22, lean);
+    const fk = part(geo.box, mats.chrome, .06, .75, .06, .12, wr + .35, -wb / 2 + .1, lean, -.35); const fk2 = fk.clone(); fk2.position.x = -.12; lean.add(fk2);
+  } else {
+    const fk = part(geo.box, mats.chrome, .045, .55, .045, .1, wr + .28, -wb / 2 + .05, lean, -.45); const fk2 = fk.clone(); fk2.position.x = -.1; lean.add(fk2);
+  }
   if (md === 'bison') {
     part(geo.sph, body, .26, .2, .42, 0, wr + .58, -.2, lean); part(geo.box, mats.seat, .34, .1, .6, 0, wr + .46, .32, lean);
     part(geo.cyl, mats.chrome, .025, .6, .025, .22, wr + .95, -.48, lean, .4); part(geo.cyl, mats.chrome, .025, .6, .025, -.22, wr + .95, -.48, lean, .4);
@@ -154,6 +308,75 @@ function makeBike(o) {
     part(geo.box, body, .28, .2, .2, 0, wr + .62, .58, lean);
     part(geo.cyl, mats.chrome, .15, .1, .15, 0, wr + .78, -.72, lean, Math.PI / 2); part(geo.sph, mats.light, .12, .12, .04, 0, wr + .78, -.78, lean);
     part(geo.box, mats.dark, .62, .035, .035, 0, wr + .72, -.55, lean);
+  } else if (md === 'pebble') {
+    part(geo.box, mats.dark, .22, .2, .32, 0, wr + .22, .02, lean);
+    part(geo.sph, body, .26, .18, .3, 0, wr + .52, -.02, lean);
+    part(geo.box, mats.seat, .2, .07, .28, 0, wr + .58, .26, lean);
+    part(geo.box, paint, .24, .2, .05, 0, wr + .5, -.42, lean, -.25);
+    part(geo.box, mats.dark, .46, .03, .03, 0, wr + .88, -.28, lean);
+    part(geo.cyl, mats.chrome, .035, .22, .035, .16, wr + .22, .32, lean, Math.PI / 2);
+    part(geo.box, mats.light, .08, .06, .03, 0, wr + .46, -.5, lean);
+    part(geo.box, mats.tail, .1, .05, .03, 0, wr + .5, .48, lean);
+  } else if (md === 'scoot') {
+    part(geo.box, mats.dark, .46, .06, .82, 0, wr + .1, .06, lean);
+    part(geo.box, body, .44, .78, .1, 0, wr + .62, -.48, lean, -.1);
+    part(geo.box, glassMat(), .38, .32, .04, 0, wr + 1.12, -.58, lean, -.18);
+    part(geo.box, body, .42, .38, .52, 0, wr + .42, .4, lean);
+    part(geo.box, mats.seat, .32, .08, .34, 0, wr + .64, .34, lean);
+    part(geo.box, mats.chrome, .52, .03, .03, 0, wr + 1.08, -.18, lean);
+    part(geo.box, mats.light, .18, .1, .04, 0, wr + .46, -.56, lean);
+    part(geo.box, paint, .38, .24, .14, 0, wr + .55, .68, lean);
+    part(geo.box, mats.tail, .16, .06, .03, 0, wr + .62, .76, lean);
+  } else if (md === 'spark') {
+    part(geo.box, body, .36, .16, 1.2, 0, wr + .24, 0, lean);
+    part(geo.box, body, .3, .2, .66, 0, wr + .42, -.12, lean, .1);
+    part(geo.box, mats.seat, .26, .07, .38, 0, wr + .5, .32, lean);
+    part(geo.box, mats.glow, .38, .04, .78, 0, wr + .34, -.02, lean);
+    part(geo.box, mats.dark, .48, .03, .03, 0, wr + .64, -.4, lean);
+    part(geo.box, mats.glow, .24, .05, .04, 0, wr + .4, -.74, lean);
+    part(geo.box, mats.glow, .22, .04, .03, 0, wr + .4, .74, lean);
+  } else if (md === 'glide') {
+    part(geo.box, body, .62, .52, .5, 0, wr + .74, -.62, lean);
+    part(geo.box, glassMat(), .52, .46, .05, 0, wr + 1.22, -.82, lean, -.12);
+    part(geo.sph, body, .3, .2, .42, 0, wr + .64, -.08, lean);
+    part(geo.box, mats.seat, .34, .1, .55, 0, wr + .62, .32, lean);
+    part(geo.box, body, .32, .34, .3, 0, wr + .82, .74, lean);
+    part(geo.box, paint, .24, .3, .4, .36, wr + .5, .28, lean);
+    part(geo.box, paint, .24, .3, .4, -.36, wr + .5, .28, lean);
+    part(geo.box, mats.chrome, .78, .045, .045, 0, wr + .3, -.1, lean);
+    part(geo.box, mats.chrome, .78, .045, .045, 0, wr + .3, .35, lean);
+    part(geo.sph, mats.light, .18, .18, .08, 0, wr + .72, -.9, lean);
+    part(geo.box, mats.dark, .66, .035, .035, 0, wr + 1.08, -.35, lean);
+    part(geo.box, mats.tail, .12, .06, .03, .12, wr + .9, .9, lean);
+    part(geo.box, mats.tail, .12, .06, .03, -.12, wr + .9, .9, lean);
+  } else if (md === 'falcon') {
+    part(geo.cone, body, .18, .85, .16, 0, wr + .5, -.72, lean, -Math.PI / 2);
+    part(geo.box, body, .34, .2, .85, 0, wr + .38, 0, lean);
+    part(geo.cone, body, .16, .78, .14, 0, wr + .42, .78, lean, Math.PI / 2);
+    part(geo.sph, glassMat(), .18, .1, .32, 0, wr + .52, -.12, lean);
+    part(geo.box, mats.seat, .18, .04, .42, 0, wr + .46, .02, lean);
+    part(geo.box, paint, .05, .08, .55, .2, wr + .48, -.15, lean);
+    part(geo.box, paint, .05, .08, .55, -.2, wr + .48, -.15, lean);
+    part(geo.box, mats.light, .1, .05, .03, 0, wr + .4, -1.12, lean);
+    part(geo.box, mats.dark, .32, .025, .025, 0, wr + .52, -.5, lean);
+    part(geo.box, mats.tail, .08, .04, .03, 0, wr + .46, 1.15, lean);
+  } else if (md === 'nova') {
+    part(geo.box, body, .28, .22, .48, 0, wr + .52, -.58, lean, .3);
+    part(geo.box, body, .48, .18, .78, 0, wr + .4, 0, lean);
+    part(geo.box, mats.gold, .07, .05, .95, 0, wr + .64, -.08, lean);
+    part(geo.sph, mats.light, .11, .11, .06, .16, wr + .52, -.86, lean);
+    part(geo.sph, mats.light, .11, .11, .06, -.16, wr + .52, -.86, lean);
+    part(geo.box, paint, .16, .18, .46, .34, wr + .42, .02, lean);
+    part(geo.box, paint, .16, .18, .46, -.34, wr + .42, .02, lean);
+    part(geo.sph, mats.glow, .13, .13, .13, 0, wr + .4, .08, lean);
+    part(geo.box, mats.seat, .24, .06, .34, 0, wr + .56, .3, lean);
+    part(geo.box, paint, .66, .03, .22, 0, wr + .78, .62, lean);
+    part(geo.box, mats.gold, .48, .02, .16, 0, wr + .96, .62, lean);
+    part(geo.box, mats.dark, .03, .24, .04, .3, wr + .8, .62, lean);
+    part(geo.box, mats.dark, .03, .24, .04, -.3, wr + .8, .62, lean);
+    part(geo.cone, body, .1, .4, .1, 0, wr + .5, .98, lean, Math.PI / 2);
+    part(geo.box, mats.dark, .5, .03, .03, 0, wr + .72, -.38, lean);
+    part(geo.box, mats.tail, .18, .05, .03, 0, wr + .58, .78, lean);
   } else {
     const big = md === 'bolt' ? 1.12 : 1;
     part(geo.box, body, .36 * big, .28, .56, 0, wr + .6, -.15, lean, .12);
@@ -165,17 +388,26 @@ function makeBike(o) {
     part(geo.box, mats.dark, .56, .035, .035, 0, wr + .72, -.5, lean);
     if (md === 'bolt') { part(geo.box, paint, .5, .03, .14, 0, wr + .92, .72, lean); part(geo.box, mats.dark, .03, .2, .05, .2, wr + .82, .72, lean); part(geo.box, mats.dark, .03, .2, .05, -.2, wr + .82, .72, lean); }
   }
-  part(geo.box, mats.tail, .14, .06, .03, 0, wr + .7, wb / 2 + .05, lean);
+  if (classic) part(geo.box, mats.tail, .14, .06, .03, 0, wr + .7, wb / 2 + .05, lean);
   const rider = new THREE.Group(); lean.add(rider);
   const jk = M(o.jacket, 25), hm = new THREE.MeshPhongMaterial({ color: o.helmet, shininess: 120 }), pants = M(0x2a3550, 10);
-  const tuck = md === 'bison' ? 0 : md === 'hopper' ? .25 : .65; const seatY = wr + (md === 'bison' ? .5 : .66);
+  const pose = {
+    pebble: { tuck: .3, seat: .74, barZ: -.34, barY: .98 },
+    scoot: { tuck: .06, seat: .7, barZ: -.16, barY: 1.14 },
+    spark: { tuck: .74, seat: .52, barZ: -.46, barY: .66 },
+    glide: { tuck: .12, seat: .74, barZ: -.22, barY: 1.18 },
+    falcon: { tuck: 1.02, seat: .4, barZ: -.62, barY: .48 },
+    nova: { tuck: .78, seat: .58, barZ: -.5, barY: .7 },
+  }[md];
+  const tuck = pose ? pose.tuck : (md === 'bison' ? 0 : md === 'hopper' ? .25 : .65);
+  const seatY = wr + (pose ? pose.seat : (md === 'bison' ? .5 : .66));
   const torso = new THREE.Group(); torso.position.set(0, seatY + .05, .2); torso.rotation.x = -tuck; rider.add(torso);
   part(geo.box, jk, .42, .62, .26, 0, .32, 0, torso);
   part(geo.box, M(0xffffff, 10), .43, .1, .27, 0, .45, 0, torso);
   part(geo.sph, hm, .2, .21, .22, 0, .78, -.02, torso);
   part(geo.box, mats.visor, .3, .1, .05, 0, .78, -.2, torso);
   part(geo.box, hm, .05, .06, .3, 0, .99, 0, torso);
-  const barZ = md === 'bison' ? -.36 : -.5, barY = md === 'bison' ? wr + 1.22 : wr + .74;
+  const barZ = pose ? pose.barZ : (md === 'bison' ? -.36 : -.5), barY = wr + (pose ? pose.barY : (md === 'bison' ? 1.22 : .74));
   for (const sx of [-1, 1]) { const sh = new THREE.Vector3(sx * .24, seatY + .05 + .58 * Math.cos(tuck), .2 - .58 * Math.sin(tuck)); const hd = new THREE.Vector3(sx * .28, barY, barZ);
     const a = new THREE.Mesh(geo.box, jk); a.position.copy(sh).add(hd).multiplyScalar(.5); a.scale.set(.11, .11, sh.distanceTo(hd)); rider.add(a); a.lookAt(hd); part(geo.sph, mats.glove, .07, .07, .07, hd.x, hd.y, hd.z, rider); }
   // Hinged legs: hip → thigh → knee → shin → boot (local -Y bone axis)
@@ -480,7 +712,7 @@ function setupRace(ti) {
   for (let k = 0; k < 8; k++) {
     let o;
     if (k === 5) o = { name: 'You', isP: true, model: S.bike, paint: S.paint, decal: S.decal, helmet: S.helmet, jacket: S.jacket, st };
-    else { const md = BIKES[Math.floor(rnd() * BIKES.length)].id; const DF = DIFFS[S.set.diff] || DIFFS.easy; const skill = DF.ai * (.9 + def.diff * .045 + ((7 - k) / 8) * .1 + rnd() * .05); o = { name: names[k], isP: false, model: md, paint: PAINTS[Math.floor(rnd() * PAINTS.length)], decal: DECALS[Math.floor(rnd() * DECALS.length)].id, helmet: GEAR[Math.floor(rnd() * GEAR.length)], jacket: GEAR[Math.floor(rnd() * GEAR.length)], st: { spd: .64 * skill, acc: .8 * skill, hnd: .8 }, aggr: (.25 + rnd() * .5 + def.diff * .05) * DF.aggr, lane: (rnd() - .5) * 9 }; }
+    else { const md = RIVAL_BIKES[Math.floor(rnd() * RIVAL_BIKES.length)].id; const DF = DIFFS[S.set.diff] || DIFFS.easy; const skill = DF.ai * (.9 + def.diff * .045 + ((7 - k) / 8) * .1 + rnd() * .05); o = { name: names[k], isP: false, model: md, paint: BASE_PAINTS[Math.floor(rnd() * BASE_PAINTS.length)].id, decal: DECALS[Math.floor(rnd() * DECALS.length)].id, helmet: HELMETS[Math.floor(rnd() * HELMETS.length)].id, jacket: JACKETS[Math.floor(rnd() * JACKETS.length)].id, st: { spd: .64 * skill, acc: .8 * skill, hnd: .8 }, aggr: (.25 + rnd() * .5 + def.diff * .05) * DF.aggr, lane: (rnd() - .5) * 9 }; }
     const r = makeRacer(o); r.s = track.L - 6 - Math.floor(k / 2) * 7; r.x = (k % 2 ? 2.8 : -2.8); r.laneT = r.isP ? 0 : o.lane; racers.push(r);
   }
   const trnd = rngf(def.seed * 13); const carCols = [0xe0e0e0, 0x2050c0, 0xc02030, 0x30a050, 0xf0c020, 0x404040, 0x7050c0];
@@ -615,8 +847,11 @@ function updateRacer(r, dt, inp) {
       for (const o of racers) { if (o === r || o.crashT > 0 || o.ghost > 0) continue; if (Math.abs(wrapDS(o.s - r.s)) > 2) continue; const dx = o.x - r.x; if (Math.abs(dx) > .6 && Math.abs(dx) < 2.2 && Math.random() < dt * r.aggr * (o.isP ? 1.2 : .35)) doKick(r, Math.sign(dx)); }
     }
     const off = Math.abs(r.x) > RW - .2, offF = off ? (r.model === 'hopper' ? Math.max(.78, DF_().offF) : (r.isP ? DF_().offF : .5)) : 1;
-    const mvE = mv * offF;
-    const accMul = (!r.isP && r._catchUp) ? (1 + r._catchUp * 1.1) : 1;
+    if (r.nitroT > 0) r.nitroT -= dt;
+    const nitro = r.isP && r.nitroT > 0;
+    if (nitro) thr = true;
+    const mvE = mv * offF * (nitro ? 1.1 : 1);
+    const accMul = ((!r.isP && r._catchUp) ? (1 + r._catchUp * 1.1) : 1) * (nitro ? 1.65 : 1);
     if (thr) r.v += (8 + 9 * r.st.acc) * accMul * dt * Math.max(.05, 1 - (r.v / mvE) ** 2); else r.v -= (1.2 + r.v * .035) * dt; // gentle coast
     if (brk) r.v -= 28 * dt;
     if (r.v > mvE) r.v -= (r.v - mvE) * (r.isP ? .7 : (r._catchUp ? .2 : 1.6)) * dt; // let drafting AI briefly exceed bike max
@@ -880,13 +1115,13 @@ function drawFX() {
 }
 
 /* ---------------- game loop ---------------- */
-let state = 'menu', paused = false, raceTime = 0, countT = 0, curTrack = 0, endT = 0, finishSeq = 0;
+let state = 'menu', paused = false, raceTime = 0, countT = 0, curTrack = 0, endT = 0, finishSeq = 0, nitroGo = false;
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(); let camInit = false;
 let fpsAcc = 0, fpsN = 0, fpsChecked = false;
 function disposeScene(sc) { sc.traverse(o => { if (o.geometry && !Object.values(geo).includes(o.geometry)) o.geometry.dispose(); if (o.material) { const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach(m => { if (m.map && m.map !== windowTex && m.map !== dotTex) m.map.dispose(); if (!Object.values(mats).includes(m)) m.dispose(); }); } }); }
 function startRace(ti) {
   tilt.lockA = orientAngle(); softPaused = false; $('tiltHint').classList.remove('on');
-  curTrack = ti; if (scene) disposeScene(scene); miniPath = null; setupRace(ti); state = 'race'; paused = false; raceTime = 0; countT = 3.99; camInit = false; endT = 0; finishSeq = 0; fpsAcc = 0; fpsN = 0; fpsChecked = false;
+  curTrack = ti; if (scene) disposeScene(scene); miniPath = null; setupRace(ti); state = 'race'; paused = false; raceTime = 0; countT = 3.99; camInit = false; endT = 0; finishSeq = 0; fpsAcc = 0; fpsN = 0; fpsChecked = false; nitroGo = false;
   showScreen(null); $('hud').classList.remove('hidden'); updateCtlMode(); $('count').textContent = ''; banner('', 0);
   for (const r of racers) poseRacer(r, 1, 0);
   ensureAudio(); sfx.beep(440, .2);
@@ -896,6 +1131,11 @@ function tickRace(dt) {
   if (countT > 0) { const prev = Math.ceil(countT); countT -= dt; const c = Math.ceil(countT); $('count').textContent = countT > 0 ? c : 'GO!'; if (c !== prev) sfx.beep(c > 0 ? 440 : 880, c > 0 ? .2 : .4); if (countT <= 0) setTimeout(() => { if (countT <= 0) $('count').textContent = ''; }, 700); }
   if (countT > .3 && tilt.g) tilt.g0 = gAng(tilt.g); // hold-angle at GO is centre
   const racing = countT <= 0; if (racing) raceTime += dt; // keep clock running so late finishers get later ft
+  if (racing && !nitroGo) {
+    nitroGo = true;
+    const you = player();
+    if (you && S.nitroArm && S.nitros > 0) { S.nitros--; S.nitroArm = false; you.nitroT = 2.1; save(); banner('NITRO!', 1100); sfx.whoosh(); }
+  }
   const inp = readInput(dt);
   for (const r of racers) { if (!racing) continue; if (r.isP) updateRacer(r, dt, r.done ? { steer: 0, thr: false, brk: true, kick: 0 } : inp); else updateRacer(r, dt, null); }
   if (racing) updateTraffic(dt); else { traffic.forEach(c => placeObj(c.m, c.s, c.x, 0)); crossTraffic.forEach(c => placeObj(c.m, c.s, c.x, Math.PI / 2)); ramps.forEach(rp => placeObj(rp.m, rp.s, rp.x, 0)); }
@@ -945,10 +1185,13 @@ const gscene = new THREE.Scene(); const gcam = new THREE.PerspectiveCamera(40, 1
 gscene.background = new THREE.Color(0x14183a); gscene.fog = new THREE.Fog(0x14183a, 8, 22);
 gscene.add(new THREE.HemisphereLight(0xc8d8ff, 0x302040, 1.4)); const gl1 = new THREE.DirectionalLight(0xffe8d0, 3); gl1.position.set(3, 6, 4); gl1.castShadow = true; gl1.shadow.mapSize.set(1024, 1024); gscene.add(gl1);
 const rim = new THREE.DirectionalLight(0x6aa0ff, 2); rim.position.set(-4, 3, -4); gscene.add(rim);
-const floor = new THREE.Mesh(new THREE.CircleGeometry(3.2, 48), new THREE.MeshPhongMaterial({ color: 0x2a2f5a, shininess: 60 })); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; gscene.add(floor);
-const ring = new THREE.Mesh(new THREE.RingGeometry(3.2, 3.35, 64), new THREE.MeshBasicMaterial({ color: 0xff8a3c })); ring.rotation.x = -Math.PI / 2; ring.position.y = .01; gscene.add(ring);
+const floorMat = new THREE.MeshPhongMaterial({ color: 0x2a2f5a, shininess: 60 });
+const floor = new THREE.Mesh(new THREE.CircleGeometry(3.2, 48), floorMat); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; gscene.add(floor);
+const ringMat = new THREE.MeshBasicMaterial({ color: 0xff8a3c });
+const ring = new THREE.Mesh(new THREE.RingGeometry(3.2, 3.35, 64), ringMat); ring.rotation.x = -Math.PI / 2; ring.position.y = .01; gscene.add(ring);
+function applyPit() { const p = PITS.find(x => x.id === S.pit) || PITS[0]; floorMat.color.set(p.floor); ringMat.color.set(p.ring); gscene.background.set(p.bg); gscene.fog.color.set(p.bg); }
 let gBike = null;
-function refreshGarageBike() { const ry = gBike ? gBike.root.rotation.y : .8; if (gBike) { gscene.remove(gBike.root); disposeScene(gBike.root); } gBike = makeBike({ model: S.bike, paint: S.paint, decal: S.decal, helmet: S.helmet, jacket: S.jacket }); gBike.root.rotation.y = ry; gscene.add(gBike.root); }
+function refreshGarageBike() { const ry = gBike ? gBike.root.rotation.y : .8; if (gBike) { gscene.remove(gBike.root); disposeScene(gBike.root); } gBike = makeBike({ model: S.bike, paint: S.paint, decal: S.decal, helmet: S.helmet, jacket: S.jacket }); gBike.root.rotation.y = ry; gscene.add(gBike.root); applyPit(); }
 function placeGarageCam() { const garage = state === 'garage'; const w = VW(), h = VH(); gcam.position.set(0, 2.1, garage ? 6.4 : 7.2); gcam.lookAt(0, garage ? .75 : 1.5, 0); if (garage && w > h) gcam.setViewOffset(w, h, w * .22, 0, w, h); else gcam.clearViewOffset(); gcam.updateProjectionMatrix(); }
 
 /* ---------------- menus ---------------- */
@@ -972,17 +1215,77 @@ function renderTracks() {
 }
 let gtab = 'bike';
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { gtab = b.dataset.tab; document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b)); renderGarage(); });
+function needCash(price, name) { banner('Need 💰' + price.toLocaleString() + (name ? ' for ' + name : '') + '. Win races to earn more!', 1700); }
+function spend(price, name) { if (price <= 0) return true; if (S.cash < price) { needCash(price, name); return false; } S.cash -= price; return true; }
+function tagFor(list, id, equipped, price) { if (equipped) return '✓ Equipped'; if (list.includes(id)) return 'Owned'; return '💰' + price.toLocaleString(); }
 function renderGarage() {
   refreshGarageBike(); const el = $('gTab'); el.innerHTML = ''; const st = bikeStats(S.bike);
-  $('gStats').innerHTML = `<b>${BIKES.find(b => b.id === S.bike).name}</b>` + [['Speed', st.spd], ['Accel', st.acc], ['Handling', st.hnd]].map(([n, v]) => `<div class="stat"><span>${n}</span><div class="bar"><i style="width:${Math.round(v / 1.15 * 100)}%"></i></div></div>`).join('');
+  const bk = BIKES.find(b => b.id === S.bike) || BIKES[0];
+  $('gStats').innerHTML = `<b>${bk.name}</b>` + [['Speed', st.spd], ['Accel', st.acc], ['Handling', st.hnd]].map(([n, v]) => `<div class="stat"><span>${n}</span><div class="bar"><i style="width:${Math.round(v / STAT_CAP * 100)}%"></i></div></div>`).join('');
   document.querySelectorAll('.cashv').forEach(e => e.textContent = S.cash.toLocaleString());
-  const sw = (list, key, lbl) => { const d = document.createElement('div'); d.innerHTML = `<div class="lbl">${lbl}</div>`; const w = document.createElement('div'); w.className = 'sw'; list.forEach(c => { const b = document.createElement('button'); b.style.background = c; b.className = S[key] === c ? 'on' : ''; b.setAttribute('aria-label', c); b.onclick = () => { S[key] = c; save(); renderGarage(); }; w.appendChild(b); }); d.appendChild(w); el.appendChild(d); };
-  if (gtab === 'bike') BIKES.forEach(b => { const own = S.owned.includes(b.id); const o = document.createElement('button'); o.className = 'opt' + (S.bike === b.id ? ' on' : ''); o.innerHTML = `<div><div class="nm">${b.name} <small>· ${b.type}</small></div><div class="sub">${b.desc}</div></div><div class="pr">${own ? (S.bike === b.id ? '✓ Riding' : 'Ride') : '💰' + b.price.toLocaleString()}</div>`;
-    o.onclick = () => { if (own) S.bike = b.id; else if (S.cash >= b.price) { S.cash -= b.price; S.owned.push(b.id); S.bike = b.id; sfx.beep(990, .2); } else { banner('Need 💰' + b.price.toLocaleString() + '. Win races to earn more!', 1600); return; } save(); renderGarage(); }; el.appendChild(o); });
-  if (gtab === 'paint') sw(PAINTS, 'paint', 'Bike paint');
-  if (gtab === 'decal') DECALS.forEach(dc => { const o = document.createElement('button'); o.className = 'opt' + (S.decal === dc.id ? ' on' : ''); o.innerHTML = `<div class="nm">${dc.name}</div>`; o.onclick = () => { S.decal = dc.id; save(); renderGarage(); }; el.appendChild(o); });
-  if (gtab === 'rider') { sw(GEAR, 'helmet', 'Helmet'); sw(GEAR, 'jacket', 'Jacket'); }
-  if (gtab === 'up') { const u = upgOf(S.bike); [['spd', 'Top speed'], ['acc', 'Accel'], ['hnd', 'Handling']].forEach(([k, n]) => { const lv = u[k], cost = UPG_COST[lv]; const d = document.createElement('div'); d.className = 'upg'; d.innerHTML = `<span class="nm">${n}</span><div class="pips">${[0, 1, 2, 3, 4].map(i => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div>`; const b = document.createElement('button'); b.textContent = lv >= 5 ? 'MAX' : '💰' + cost.toLocaleString(); b.disabled = lv >= 5 || S.cash < cost; b.onclick = () => { S.cash -= cost; u[k]++; save(); sfx.beep(1100, .15); renderGarage(); }; d.appendChild(b); el.appendChild(d); }); const p = document.createElement('p'); p.className = 'hint'; p.textContent = 'Upgrades are saved per bike. Win races to earn cash.'; el.appendChild(p); }
+  const addOpt = (label, sub, priceText, on, click, chip) => {
+    const o = document.createElement('button'); o.className = 'opt' + (on ? ' on' : '');
+    o.innerHTML = `${chip ? `<i class="chip" style="background:${chip}"></i>` : ''}<div class="grow"><div class="nm">${label}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div><div class="pr">${priceText}</div>`;
+    o.onclick = click; el.appendChild(o); return o;
+  };
+  const buyEquip = (list, item, equip) => {
+    if (!list.includes(item.id)) { if (!spend(item.price, item.name)) return; list.push(item.id); sfx.beep(990, .2); }
+    equip(); save(); renderGarage();
+  };
+  const lbl = (t) => { const d = document.createElement('div'); d.className = 'lbl'; d.textContent = t; el.appendChild(d); };
+  if (gtab === 'bike') {
+    BIKES.forEach(b => { const own = S.owned.includes(b.id); const on = S.bike === b.id; addOpt(`${b.name} <small>· ${b.type}</small>`, b.desc, own ? (on ? '✓ Riding' : 'Owned') : '💰' + b.price.toLocaleString(), on, () => {
+      if (own) S.bike = b.id; else if (spend(b.price, b.name)) { S.owned.push(b.id); S.bike = b.id; sfx.beep(990, .2); } else return;
+      save(); renderGarage();
+    }); });
+    const ownedTop = Math.max(0, ...BIKES.filter(b => S.owned.includes(b.id)).map(b => b.price));
+    const stepUp = BIKES.filter(b => !S.owned.includes(b.id) && b.price > ownedTop).sort((a, b) => a.price - b.price)[0];
+    const cheapest = BIKES.filter(b => !S.owned.includes(b.id)).sort((a, b) => a.price - b.price)[0];
+    const next = stepUp || cheapest;
+    const p = document.createElement('p'); p.className = 'hint'; p.textContent = next ? `Next save-up: ${next.name} costs 💰${next.price.toLocaleString()}.` : 'Every bike is in your garage. Champion saver!'; el.appendChild(p);
+  }
+  if (gtab === 'paint') {
+    lbl('Paint packs');
+    PAINT_PACKS.forEach(pk => {
+      const missing = pk.paints.filter(id => !S.ownedPaints.includes(id));
+      const owned = !missing.length;
+      const price = owned ? 0 : (missing.length === pk.paints.length ? pk.price : Math.max(200, Math.round(pk.price * missing.length / pk.paints.length)));
+      addOpt(pk.name, pk.desc, owned ? 'Owned' : '💰' + price.toLocaleString(), false, () => {
+        if (owned) { banner('You already own those colors!', 1200); return; }
+        if (!spend(price, pk.name)) return;
+        missing.forEach(id => S.ownedPaints.push(id)); sfx.beep(990, .2); save(); renderGarage();
+      });
+    });
+    lbl('Colors');
+    PAINTS.forEach(p => addOpt(p.name, p.pack ? 'Special color' : '', tagFor(S.ownedPaints, p.id, S.paint === p.id, p.price), S.paint === p.id, () => buyEquip(S.ownedPaints, p, () => { S.paint = p.id; }), p.id));
+  }
+  if (gtab === 'decal') DECALS.forEach(dc => addOpt(dc.name, dc.price >= 900 ? 'Special decal' : '', tagFor(S.ownedDecals, dc.id, S.decal === dc.id, dc.price), S.decal === dc.id, () => buyEquip(S.ownedDecals, dc, () => { S.decal = dc.id; })));
+  if (gtab === 'rider') {
+    lbl('Helmet');
+    HELMETS.forEach(h => addOpt(h.name, '', tagFor(S.ownedHelmets, h.id, S.helmet === h.id, h.price), S.helmet === h.id, () => buyEquip(S.ownedHelmets, h, () => { S.helmet = h.id; }), h.id));
+    lbl('Jacket');
+    JACKETS.forEach(j => addOpt(j.name, '', tagFor(S.ownedJackets, j.id, S.jacket === j.id, j.price), S.jacket === j.id, () => buyEquip(S.ownedJackets, j, () => { S.jacket = j.id; }), j.id));
+  }
+  if (gtab === 'shop') {
+    lbl('Nitro sips');
+    const note = document.createElement('p'); note.className = 'shopnote'; note.textContent = `A short zoom when the next race starts. Pocket ${S.nitros}/${NITRO_MAX}.`; el.appendChild(note);
+    const room = NITRO_MAX - S.nitros;
+    addOpt('Nitro sip', 'One head-start boost', room < 1 ? 'Full' : '💰' + NITRO_PRICE.toLocaleString(), false, () => buyNitro(1, NITRO_PRICE));
+    addOpt('Nitro 3-pack', 'Three sips, a little cheaper', room < 3 ? 'Need room for 3' : '💰' + NITRO_PACK.toLocaleString(), false, () => buyNitro(3, NITRO_PACK));
+    addOpt(S.nitroArm ? 'Armed for the next race' : 'Arm nitro for the next race', S.nitros ? 'Uses one sip when GO! flashes' : 'Buy a sip first', S.nitroArm ? '✓ Equipped' : (S.nitros ? 'Owned' : 'Buy a sip'), S.nitroArm, () => {
+      if (!S.nitros) { banner('Buy a nitro sip first!', 1400); return; }
+      S.nitroArm = !S.nitroArm; save(); renderGarage();
+    });
+    lbl('Garage looks');
+    PITS.forEach(p => addOpt(p.name, p.desc, tagFor(S.ownedPits, p.id, S.pit === p.id, p.price), S.pit === p.id, () => buyEquip(S.ownedPits, p, () => { S.pit = p.id; })));
+  }
+  if (gtab === 'up') { const u = upgOf(S.bike); [['spd', 'Top speed'], ['acc', 'Accel'], ['hnd', 'Handling']].forEach(([k, n]) => { const lv = u[k], cost = UPG_COST[lv]; const d = document.createElement('div'); d.className = 'upg'; d.innerHTML = `<span class="nm">${n}</span><div class="pips">${[0, 1, 2, 3, 4].map(i => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div>`; const b = document.createElement('button'); b.textContent = lv >= 5 ? 'MAX' : '💰' + cost.toLocaleString(); b.disabled = lv >= 5; if (lv < 5 && S.cash < cost) b.classList.add('short'); b.onclick = () => { if (lv >= 5 || !spend(cost, n)) return; u[k]++; save(); sfx.beep(1100, .15); renderGarage(); }; d.appendChild(b); el.appendChild(d); }); const p = document.createElement('p'); p.className = 'hint'; p.textContent = 'Upgrades are saved per bike. Nitro sips and garage looks are in the Shop tab.'; el.appendChild(p); }
+}
+function buyNitro(n, price) {
+  const room = NITRO_MAX - S.nitros;
+  if (room < n) { banner(room <= 0 ? 'Nitro pocket is full!' : 'Only room for ' + room + ' more sip' + (room === 1 ? '' : 's') + '.', 1400); return; }
+  if (!spend(price, n === 1 ? 'a nitro sip' : 'a nitro 3-pack')) return;
+  S.nitros += n; sfx.beep(990, .2); save(); renderGarage();
 }
 function renderSettings() { const s = S.set; $('oSteer').value = s.steer; $('oSens').value = s.sens; $('oSensV').textContent = s.sens; $('oInv').checked = s.inv; $('oAuto').checked = s.auto; $('oDiff').value = s.diff; $('oQual').value = s.qual; $('oMusic').checked = s.music; $('oSound').checked = s.sound; }
 $('oSteer').onchange = e => { S.set.steer = e.target.value; save(); if (S.set.steer === 'tilt') requestTilt(); };
